@@ -1,0 +1,50 @@
+{
+  "schemes": [
+    {
+      "name": "Batman",
+      "background": "#0d0d0d",
+      "foreground": "#e8e8e8",
+      "black": "#0d0d0d",
+      "red": "#6d1e42",
+      "green": "#4a5e23",
+      "yellow": "#d8d890",
+      "blue": "#355e8a",
+      "purple": "#6d3a8e",
+      "cyan": "#4a899b",
+      "white": "#e8e8e8",
+      "brightBlack": "#4d4d4d",
+      "brightRed": "#ff5f87",
+      "brightGreen": "#95f48b",
+      "brightYellow": "#fff27a",
+      "brightBlue": "#62b1f2",
+      "brightPurple": "#c55fff",
+      "brightCyan": "#64fcff",
+      "brightWhite": "#ffffff",
+      "cursorColor": "#e8e8e8",
+      "selectionBackground": "#2d2d2d"
+    },
+    {
+      "name": "Afterglow",
+      "background": "#212121",
+      "foreground": "#d0d0d0",
+      "black": "#151515",
+      "red": "#ac4142",
+      "green": "#7e8e50",
+      "yellow": "#e5b567",
+      "blue": "#6c99bb",
+      "purple": "#9f4e85",
+      "cyan": "#7dd6cf",
+      "white": "#d0d0d0",
+      "brightBlack": "#505050",
+      "brightRed": "#ac4142",
+      "brightGreen": "#7e8e50",
+      "brightYellow": "#e5b567",
+      "brightBlue": "#6c99bb",
+      "brightPurple": "#9f4e85",
+      "brightCyan": "#7dd6cf",
+      "brightWhite": "#f5f5f5",
+      "cursorColor": "#d0d0d0",
+      "selectionBackground": "#303030"
+    }
+  ]
+}
