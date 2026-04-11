@@ -1,0 +1,71 @@
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from app.database import init_db
+from app.routers import auth, courses, quizzes
+from app.routers.templates import router as templates_router
+from app.routers.instruments import router as instruments_router
+from app.routers.admin import router as admin_router
+from app.routers.practice import router as practice_router
+from app.routers.comments import router as comments_router
+from app.routers.reviews import router as reviews_router
+from app.limiter import limiter
+import os
+import logging
+import asyncio
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(
+    title="LMS Platform API",
+    description="Платформа для создания и прохождения онлайн-курсов",
+    version="1.0.0"
+)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+@app.on_event("startup")
+async def startup():
+    await init_db()
+
+app.include_router(auth.router, prefix="/api")
+app.include_router(courses.router, prefix="/api")
+app.include_router(quizzes.router, prefix="/api")
+app.include_router(templates_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")
+app.include_router(instruments_router, prefix="/api")
+app.include_router(practice_router, prefix="/api")
+app.include_router(comments_router, prefix="/api")
+app.include_router(reviews_router, prefix="/api")
+
+UPLOAD_DIR = "uploads"
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://pdv:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
+
+
+@app.get("/")
+async def root():
+    return {"message": "LMS Platform API", "status": "running"}
+
+
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
