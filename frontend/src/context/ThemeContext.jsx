@@ -7,10 +7,8 @@ export function ThemeProvider({ children }) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme')
-    const initialTheme = savedTheme === 'dark' ? 'dark' : 'light'
-    document.documentElement.setAttribute('data-theme', initialTheme)
-    setTheme(initialTheme)
+    document.documentElement.setAttribute('data-theme', 'light')
+    setTheme('light')
     setMounted(true)
   }, [])
 
