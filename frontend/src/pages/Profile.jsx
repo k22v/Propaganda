@@ -80,6 +80,7 @@ function Profile() {
 
       if (hasAvatarChanged) {
         await authApi.updateAvatar(selectedAvatar)
+        window.location.reload()
       }
 
       showToast('Профиль сохранён', 'success')

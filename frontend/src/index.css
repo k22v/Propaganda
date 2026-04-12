@@ -3158,7 +3158,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hero-title-text.active {
-  animation: textSlideIn 1s ease-out forwards, gradientMove 1.5s ease-in-out infinite;
+  animation: textSlideIn 3s ease-out forwards, gradientMove 2s ease-in-out infinite;
 }
 
 @keyframes textSlideIn {
@@ -3166,11 +3166,11 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0;
     transform: translateY(30px);
   }
-  15% {
+  8% {
     opacity: 1;
     transform: translateY(0);
   }
-  85% {
+  90% {
     opacity: 1;
     transform: translateY(0);
   }

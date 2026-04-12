@@ -13,7 +13,7 @@ function Landing() {
   useEffect(() => {
     const interval = setInterval(() => {
       setHeroText(prev => (prev + 1) % heroTexts.length)
-    }, 3000)
+    }, 1700)
     return () => clearInterval(interval)
   }, [])
 
