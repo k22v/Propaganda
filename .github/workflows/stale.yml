@@ -1,0 +1,24 @@
+name: Stale
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v9
+        with:
+          stale-issue-message: 'Эта задача не обновлялась более 60 дней. Будет закрыта через 7 дней.'
+          stale-pr-message: 'Этот PR не обновлялся более 60 дней. Будет закрыт через 7 дней.'
+          close-issue-message: 'Задача закрыта из-за отсутствия активности.'
+          close-pr-message: 'PR закрыт из-за отсутствия активности.'
+          days-before-stale: 60
+          days-before-close: 7
+          exempt-issue-labels: 'pinned,security'
+          exempt-pr-labels: 'pinned'
+          operations-per-run: 100
