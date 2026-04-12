@@ -55,15 +55,20 @@ function Reviews({ courseId, isEnrolled }) {
 
   const wrappedApi = withToastHandler({
     submitReview: async () => {
-      if (myReview) {
-        await reviewsApi.update(myReview.id, form)
-        showToast('Отзыв обновлён', 'success')
-      } else {
-        await reviewsApi.create({ course_id: courseId, ...form })
-        showToast('Отзыв сохранён', 'success')
+      try {
+        if (myReview) {
+          await reviewsApi.update(myReview.id, form)
+          showToast('Отзыв обновлён', 'success')
+        } else {
+          await reviewsApi.create({ course_id: courseId, ...form })
+          showToast('Отзыв сохранён', 'success')
+        }
+        setShowForm(false)
+        loadReviews()
+      } catch (err) {
+        const msg = err.response?.data?.detail || 'Ошибка сохранения'
+        showToast(msg, 'error')
       }
-      setShowForm(false)
-      loadReviews()
     }
   }, showToast)
 

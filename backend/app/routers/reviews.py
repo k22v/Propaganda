@@ -98,21 +98,19 @@ async def create_review(
     await db.commit()
     await db.refresh(review)
     
-    return {
-        "id": review.id,
-        "user_id": review.user_id,
-        "course_id": review.course_id,
-        "rating": review.rating,
-        "comment": review.comment,
-        "created_at": review.created_at,
-        "updated_at": review.updated_at,
-        "user": {
-            "id": current_user.id,
-            "username": current_user.username,
-            "full_name": current_user.full_name,
-            "avatar_id": current_user.avatar_id
-        }
-    }
+    from app.schemas import UserResponse
+    user_response = UserResponse.model_validate(current_user)
+    
+    return ReviewResponse(
+        id=review.id,
+        user_id=review.user_id,
+        course_id=review.course_id,
+        rating=review.rating,
+        comment=review.comment,
+        created_at=review.created_at,
+        updated_at=review.updated_at,
+        user=user_response
+    )
 
 
 @router.put("/{review_id}", response_model=ReviewResponse)
@@ -138,21 +136,19 @@ async def update_review(
     await db.commit()
     await db.refresh(review)
     
-    return {
-        "id": review.id,
-        "user_id": review.user_id,
-        "course_id": review.course_id,
-        "rating": review.rating,
-        "comment": review.comment,
-        "created_at": review.created_at,
-        "updated_at": review.updated_at,
-        "user": {
-            "id": current_user.id,
-            "username": current_user.username,
-            "full_name": current_user.full_name,
-            "avatar_id": current_user.avatar_id
-        }
-    }
+    from app.schemas import UserResponse
+    user_response = UserResponse.model_validate(current_user)
+    
+    return ReviewResponse(
+        id=review.id,
+        user_id=review.user_id,
+        course_id=review.course_id,
+        rating=review.rating,
+        comment=review.comment,
+        created_at=review.created_at,
+        updated_at=review.updated_at,
+        user=user_response
+    )
 
 
 @router.delete("/{review_id}")
