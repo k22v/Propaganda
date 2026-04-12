@@ -3,7 +3,7 @@ import { reviewsApi } from '../api'
 import { ToastContainer, useToast, withToastHandler } from './Toast'
 import { ConfirmDialog } from './ConfirmDialog'
 
-function Reviews({ courseId, isEnrolled }) {
+function Reviews({ courseId, isEnrolled, isSuperuser = false }) {
   const { toast, showToast, closeToast } = useToast()
   const [reviews, setReviews] = useState([])
   const [stats, setStats] = useState({ count: 0, average: 0 })
@@ -12,6 +12,8 @@ function Reviews({ courseId, isEnrolled }) {
   const [myReview, setMyReview] = useState(null)
   const [form, setForm] = useState({ rating: 5, comment: '' })
   const [deleteReviewId, setDeleteReviewId] = useState(null)
+  const [respondReviewId, setRespondReviewId] = useState(null)
+  const [responseText, setResponseText] = useState('')
 
   const ANIMALS = [
     { id: 1, emoji: '🦊' }, { id: 2, emoji: '🐼' }, { id: 3, emoji: '🦁' },
@@ -121,6 +123,30 @@ function Reviews({ courseId, isEnrolled }) {
         }}
         onCancel={() => setDeleteReviewId(null)}
       />
+      {respondReviewId && (
+        <div className="respond-form">
+          <h4>Ответ на отзыв</h4>
+          <textarea
+            value={responseText}
+            onChange={(e) => setResponseText(e.target.value)}
+            placeholder="Введите ваш ответ..."
+            rows={3}
+          />
+          <div className="form-actions">
+            <button className="btn btn-secondary" onClick={() => setRespondReviewId(null)}>Отмена</button>
+            <button className="btn btn-primary" onClick={async () => {
+              try {
+                await reviewsApi.respond(respondReviewId, responseText)
+                showToast('Ответ добавлен', 'success')
+                loadReviews()
+              } catch (err) {
+                showToast('Ошибка', 'error')
+              }
+              setRespondReviewId(null)
+            }}>Отправить</button>
+          </div>
+        </div>
+      )}
       <div className="reviews-header">
         <h3>Отзывы ({stats.count})</h3>
         {stats.count > 0 && (
@@ -187,13 +213,29 @@ function Reviews({ courseId, isEnrolled }) {
                 </div>
               </div>
               {review.comment && <p className="review-comment">{review.comment}</p>}
+              {review.admin_response && (
+                <div className="admin-response">
+                  <strong>Ответ администратора:</strong>
+                  <p>{review.admin_response}</p>
+                </div>
+              )}
               <div className="review-footer">
                 <span className="review-date">
                   {new Date(review.created_at).toLocaleDateString('ru-RU')}
                 </span>
-                {myReview?.id === review.id && (
-                  <button className="btn-delete-review" onClick={() => handleDelete(review.id)}>Удалить</button>
-                )}
+                <div className="review-actions">
+                  {myReview?.id === review.id && (
+                    <button className="btn-delete-review" onClick={() => handleDelete(review.id)}>Удалить</button>
+                  )}
+                  {isSuperuser && (
+                    <>
+                      {!review.admin_response && (
+                        <button className="btn-respond-review" onClick={() => { setRespondReviewId(review.id); setResponseText('') }}>Ответить</button>
+                      )}
+                      <button className="btn-delete-review" onClick={() => handleDelete(review.id)}>🗑️</button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           ))
@@ -282,6 +324,43 @@ function Reviews({ courseId, isEnrolled }) {
           text-align: center;
           color: var(--color-text-secondary);
           padding: 2rem;
+        }
+        .admin-response {
+          background: var(--color-bg);
+          padding: 0.75rem;
+          border-radius: var(--radius-sm);
+          margin-top: 0.75rem;
+          border-left: 3px solid #1a6ce8;
+        }
+        .admin-response strong { font-size: 0.85rem; color: #1a6ce8; }
+        .admin-response p { margin: 0.25rem 0 0; font-size: 0.9rem; }
+        .review-actions { display: flex; gap: 0.5rem; }
+        .btn-respond-review {
+          background: none;
+          border: none;
+          color: #1a6ce8;
+          cursor: pointer;
+          font-size: 0.85rem;
+          padding: 0;
+        }
+        .btn-respond-review:hover { text-decoration: underline; }
+        .respond-form {
+          background: var(--color-surface);
+          padding: 1rem;
+          border-radius: var(--radius-md);
+          margin-bottom: 1rem;
+          border: 1px solid var(--color-border);
+        }
+        .respond-form h4 { margin: 0 0 0.75rem; }
+        .respond-form textarea {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-md);
+          background: var(--color-bg);
+          color: var(--color-text);
+          resize: vertical;
+          margin-bottom: 0.75rem;
         }
       `}</style>
     </div>

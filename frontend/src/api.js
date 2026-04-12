@@ -159,6 +159,7 @@ export const reviewsApi = {
   create: (data) => api.post('/reviews/', data),
   update: (id, data) => api.patch(`/reviews/${id}`, data),
   delete: (id) => api.delete(`/reviews/${id}`),
+  respond: (id, response) => api.post(`/reviews/${id}/respond`, { response }),
   getMy: () => api.get('/reviews/my'),
 }
 

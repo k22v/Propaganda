@@ -510,6 +510,8 @@ class ReviewResponse(BaseModel):
     course_id: int
     rating: int
     comment: Optional[str]
+    admin_response: Optional[str] = None
+    admin_response_at: Optional[datetime] = None
     created_at: datetime
     updated_at: Optional[datetime]
     user: Optional[UserResponse] = None

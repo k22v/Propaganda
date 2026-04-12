@@ -274,6 +274,8 @@ class Review(Base):
     course_id: Mapped[int] = mapped_column(ForeignKey("courses.id"), index=True)
     rating: Mapped[int] = mapped_column(Integer, default=5)
     comment: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    admin_response: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    admin_response_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 

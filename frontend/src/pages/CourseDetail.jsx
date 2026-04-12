@@ -446,7 +446,7 @@ function CourseDetail() {
         onSave={handleAddContent}
       />
 
-      {course && <Reviews courseId={id} isEnrolled={course.is_enrolled} />}
+      {course && <Reviews courseId={id} isEnrolled={course.is_enrolled} isSuperuser={isSuperuser} />}
 
       <ToastContainer toast={toast} onClose={closeToast} />
     </div>

@@ -172,6 +172,31 @@ async def delete_review(
     return {"message": "Отзыв удалён"}
 
 
+@router.post("/{review_id}/respond", response_model=ReviewResponse)
+async def respond_to_review(
+    review_id: int,
+    response_data: dict,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Только администратор может отвечать на отзывы")
+    
+    result = await db.execute(select(Review).where(Review.id == review_id))
+    review = result.scalar_one_or_none()
+    if not review:
+        raise HTTPException(status_code=404, detail="Отзыв не найден")
+    
+    from datetime import datetime
+    review.admin_response = response_data.get("response", "")
+    review.admin_response_at = datetime.utcnow()
+    
+    await db.commit()
+    await db.refresh(review)
+    
+    return review
+
+
 @router.get("/my")
 async def get_my_reviews(
     current_user: User = Depends(get_current_active_user),
