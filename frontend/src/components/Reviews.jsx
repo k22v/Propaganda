@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { reviewsApi } from '../api'
 import { ToastContainer, useToast, withToastHandler } from './Toast'
+import { ConfirmDialog } from './ConfirmDialog'
 
 function Reviews({ courseId, isEnrolled }) {
   const { toast, showToast, closeToast } = useToast()
@@ -10,6 +11,7 @@ function Reviews({ courseId, isEnrolled }) {
   const [showForm, setShowForm] = useState(false)
   const [myReview, setMyReview] = useState(null)
   const [form, setForm] = useState({ rating: 5, comment: '' })
+  const [deleteReviewId, setDeleteReviewId] = useState(null)
 
   const ANIMALS = [
     { id: 1, emoji: '🦊' }, { id: 2, emoji: '🐼' }, { id: 3, emoji: '🦁' },
@@ -70,16 +72,8 @@ function Reviews({ courseId, isEnrolled }) {
     wrappedApi.submitReview()
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('Удалить отзыв?')) return
-    try {
-      await reviewsApi.delete(id)
-      loadReviews()
-      setMyReview(null)
-      showToast('Отзыв удалён', 'success')
-    } catch (err) {
-      showToast('Ошибка удаления', 'error')
-    }
+  const handleDelete = (id) => {
+    setDeleteReviewId(id)
   }
 
   const renderStars = (rating, interactive = false, onSelect = () => {}) => {
@@ -103,6 +97,25 @@ function Reviews({ courseId, isEnrolled }) {
   return (
     <div className="reviews-section">
       <ToastContainer toast={toast} onClose={closeToast} />
+      <ConfirmDialog
+        isOpen={deleteReviewId !== null}
+        title="Удаление отзыва"
+        message="Вы уверены, что хотите удалить этот отзыв?"
+        confirmText="Удалить"
+        danger={true}
+        onConfirm={async () => {
+          try {
+            await reviewsApi.delete(deleteReviewId)
+            loadReviews()
+            setMyReview(null)
+            showToast('Отзыв удалён', 'success')
+          } catch (err) {
+            showToast('Ошибка удаления', 'error')
+          }
+          setDeleteReviewId(null)
+        }}
+        onCancel={() => setDeleteReviewId(null)}
+      />
       <div className="reviews-header">
         <h3>Отзывы ({stats.count})</h3>
         {stats.count > 0 && (
