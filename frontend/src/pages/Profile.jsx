@@ -83,9 +83,10 @@ function Profile() {
       }
 
       if (hasNameChanged) {
-        await authApi.updateProfile({
+        const res = await authApi.updateProfile({
           full_name: fullName,
         })
+        setUser(prev => ({ ...prev, full_name: fullName }))
       }
 
       if (hasAvatarChanged) {
@@ -94,7 +95,6 @@ function Profile() {
       }
 
       showToast('Профиль сохранён', 'success')
-      loadUser()
     }
   }, showToast)
 

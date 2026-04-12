@@ -33,7 +33,7 @@ class UserCreate(BaseModel):
 
 
 class UserResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True, response_model_by_alias=True)
+    model_config = ConfigDict(from_attributes=True)
 
     id: int
     email: str

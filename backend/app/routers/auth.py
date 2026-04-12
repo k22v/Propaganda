@@ -136,13 +136,17 @@ async def update_profile(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if data.full_name is not None:
-        current_user.full_name = data.full_name
-    if data.specialization is not None:
-        current_user.specialization = data.specialization
-    await db.commit()
-    await db.refresh(current_user)
-    return current_user
+    try:
+        if data.full_name is not None:
+            current_user.full_name = data.full_name
+        if data.specialization is not None:
+            current_user.specialization = data.specialization
+        await db.commit()
+        await db.refresh(current_user)
+        return current_user
+    except Exception as e:
+        print(f"Error updating profile: {e}")
+        raise
 
 
 @router.post("/logout")

@@ -16,33 +16,37 @@ async def get_course_reviews(
     course_id: int,
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(
-        select(Review).where(Review.course_id == course_id)
-        .options(selectinload(Review.user))
-        .order_by(Review.created_at.desc())
-    )
-    reviews = result.scalars().all()
-    
-    reviews_data = []
-    for r in reviews:
-        review_dict = {
-            "id": r.id,
-            "user_id": r.user_id,
-            "course_id": r.course_id,
-            "rating": r.rating,
-            "comment": r.comment,
-            "created_at": r.created_at,
-            "updated_at": r.updated_at,
-            "user": {
-                "id": r.user.id,
-                "username": r.user.username,
-                "full_name": r.user.full_name,
-                "avatar_id": r.user.avatar_id
-            } if r.user else None
-        }
-        reviews_data.append(review_dict)
-    
-    return reviews_data
+    try:
+        result = await db.execute(
+            select(Review).where(Review.course_id == course_id)
+            .options(selectinload(Review.user))
+            .order_by(Review.created_at.desc())
+        )
+        reviews = result.scalars().all()
+        
+        reviews_data = []
+        for r in reviews:
+            review_dict = {
+                "id": r.id,
+                "user_id": r.user_id,
+                "course_id": r.course_id,
+                "rating": r.rating,
+                "comment": r.comment,
+                "created_at": r.created_at,
+                "updated_at": r.updated_at,
+                "user": {
+                    "id": r.user.id,
+                    "username": r.user.username,
+                    "full_name": r.user.full_name,
+                    "avatar_id": r.user.avatar_id
+                } if r.user else None
+            }
+            reviews_data.append(review_dict)
+        
+        return reviews_data
+    except Exception as e:
+        print(f"Error loading reviews: {e}")
+        raise
 
 
 @router.get("/course/{course_id}/stats")
@@ -50,18 +54,22 @@ async def get_course_review_stats(
     course_id: int,
     db: AsyncSession = Depends(get_db)
 ):
-    result = await db.execute(
-        select(
-            func.count(Review.id).label("count"),
-            func.avg(Review.rating).label("average")
-        ).where(Review.course_id == course_id)
-    )
-    stats = result.one()
-    
-    return {
-        "count": stats.count or 0,
-        "average": round(stats.average, 1) if stats.average else 0
-    }
+    try:
+        result = await db.execute(
+            select(
+                func.count(Review.id).label("count"),
+                func.avg(Review.rating).label("average")
+            ).where(Review.course_id == course_id)
+        )
+        stats = result.one()
+        
+        return {
+            "count": stats.count or 0,
+            "average": round(stats.average, 1) if stats.average else 0
+        }
+    except Exception as e:
+        print(f"Error loading review stats: {e}")
+        return {"count": 0, "average": 0}
 
 
 @router.post("/", response_model=ReviewResponse)
@@ -188,7 +196,30 @@ async def get_my_reviews(
     db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(
-        select(Review).where(Review.user_id == current_user.id)
+        select(Review)
+        .options(selectinload(Review.user))
+        .where(Review.user_id == current_user.id)
         .order_by(Review.created_at.desc())
     )
-    return result.scalars().all()
+    reviews = result.scalars().all()
+    
+    reviews_data = []
+    for r in reviews:
+        review_dict = {
+            "id": r.id,
+            "user_id": r.user_id,
+            "course_id": r.course_id,
+            "rating": r.rating,
+            "comment": r.comment,
+            "created_at": r.created_at,
+            "updated_at": r.updated_at,
+            "user": {
+                "id": r.user.id,
+                "username": r.user.username,
+                "full_name": r.user.full_name,
+                "avatar_id": r.user.avatar_id
+            } if r.user else None
+        }
+        reviews_data.append(review_dict)
+    
+    return reviews_data
