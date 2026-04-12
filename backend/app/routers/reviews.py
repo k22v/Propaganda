@@ -182,7 +182,9 @@ async def respond_to_review(
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Только администратор может отвечать на отзывы")
     
-    result = await db.execute(select(Review).where(Review.id == review_id))
+    result = await db.execute(
+        select(Review).options(selectinload(Review.user)).where(Review.id == review_id)
+    )
     review = result.scalar_one_or_none()
     if not review:
         raise HTTPException(status_code=404, detail="Отзыв не найден")
@@ -194,7 +196,21 @@ async def respond_to_review(
     await db.commit()
     await db.refresh(review)
     
-    return review
+    from app.schemas import UserResponse
+    user_response = UserResponse.model_validate(review.user) if review.user else None
+    
+    return ReviewResponse(
+        id=review.id,
+        user_id=review.user_id,
+        course_id=review.course_id,
+        rating=review.rating,
+        comment=review.comment,
+        admin_response=review.admin_response,
+        admin_response_at=review.admin_response_at,
+        created_at=review.created_at,
+        updated_at=review.updated_at,
+        user=user_response
+    )
 
 
 @router.get("/my")
