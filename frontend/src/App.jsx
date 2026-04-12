@@ -16,6 +16,7 @@ const CourseDetail = lazy(() => import('./pages/CourseDetail'))
 const CreateCourse = lazy(() => import('./pages/CreateCourse'))
 const LessonView = lazy(() => import('./pages/LessonView'))
 const CreateQuiz = lazy(() => import('./pages/CreateQuiz'))
+const QuizView = lazy(() => import('./pages/QuizView'))
 const Certificates = lazy(() => import('./pages/Certificates'))
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
 const Profile = lazy(() => import('./pages/Profile'))
@@ -100,6 +101,7 @@ function App() {
             <Route path="/courses/:courseId/content/:contentId" element={<LessonView />} />
             <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonView />} />
             <Route path="/courses/:courseId/lessons/:lessonId/quiz" element={isAuthenticated ? <CreateQuiz /> : <Navigate to="/login" />} />
+            <Route path="/courses/:courseId/quiz/:quizId" element={isAuthenticated ? <QuizView /> : <Navigate to="/login" />} />
             <Route path="/certificates" element={isAuthenticated ? <Certificates /> : <Navigate to="/login" />} />
             <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
             <Route path="/create" element={isSuperuser ? <CreateCourse /> : <NotFound />} />

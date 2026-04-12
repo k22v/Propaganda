@@ -325,6 +325,12 @@ function CourseDetail() {
                             {content.title}
                           </Link>
                         ))}
+                        {chapter.quiz && (
+                          <Link to={`/courses/${id}/quiz/${chapter.quiz.id}`} className="view-content-link" style={{ marginTop: '0.5rem', borderTop: '1px dashed var(--color-border)', paddingTop: '0.5rem' }}>
+                            <span className="content-icon">📋</span>
+                            {chapter.quiz.title}
+                          </Link>
+                        )}
                       </div>
                     ))}
                   </div>

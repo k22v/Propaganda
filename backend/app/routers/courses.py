@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_
 from sqlalchemy.orm import selectinload
 from typing import List
 import os
@@ -35,15 +35,16 @@ async def list_courses(
 ):
     query = select(Course).where(Course.is_published == True)
     
-    if not current_user.is_superuser:
-        user_spec = current_user.specialization
-        if specialization and specialization != user_spec:
-            specialization = user_spec
-        else:
-            specialization = user_spec
+    if current_user.is_superuser:
+        pass
+    elif specialization:
+        if specialization != (current_user.specialization or ''):
+            specialization = current_user.specialization
+    else:
+        specialization = current_user.specialization
     
     if specialization:
-        query = query.where(Course.specialization == specialization)
+        query = query.where(or_(Course.specialization == specialization, Course.specialization == None))
     
     result = await db.execute(
         query.options(selectinload(Course.author))
@@ -150,101 +151,129 @@ async def get_course(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
-    result = await db.execute(
-        select(Course).where(Course.id == course_id)
-    )
-    course = result.scalar_one_or_none()
-    if not course:
-        raise HTTPException(status_code=404, detail="Course not found")
-
-    if not current_user.is_superuser and course.specialization != current_user.specialization:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Этот курс предназначен для специализации: {course.specialization}. Ваша специализация: {current_user.specialization}"
+    try:
+        result = await db.execute(
+            select(Course).where(Course.id == course_id)
         )
+        course = result.scalar_one_or_none()
+        if not course:
+            raise HTTPException(status_code=404, detail="Course not found")
 
-    sections_result = await db.execute(
-        select(Section)
-        .where(Section.course_id == course_id)
-        .order_by(Section.order)
-    )
-    sections = sections_result.scalars().all()
-
-    sections_with_chapters = []
-    for section in sections:
-        chapters_result = await db.execute(
-            select(Chapter)
-            .where(Chapter.section_id == section.id)
-            .order_by(Chapter.order)
-        )
-        chapters = chapters_result.scalars().all()
-
-        chapters_with_contents = []
-        for chapter in chapters:
-            contents_result = await db.execute(
-                select(LessonContent)
-                .where(LessonContent.chapter_id == chapter.id)
-                .order_by(LessonContent.order)
-            )
-            contents = contents_result.scalars().all()
-
-            contents_list = []
-            for c in contents:
-                quiz_result = await db.execute(
-                    select(func.count()).select_from(LessonContent).where(LessonContent.id == c.id)
+        if not current_user.is_superuser:
+            user_spec = current_user.specialization or ''
+            course_spec = course.specialization or ''
+            if course_spec and user_spec and course_spec != user_spec:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Этот курс предназначен для специализации: {course_spec}. Ваша специализация: {user_spec}"
                 )
-                has_quiz = c.content_type == "quiz"
 
-                contents_list.append({
-                    "id": c.id,
-                    "chapter_id": c.chapter_id,
-                    "title": c.title,
-                    "content_type": c.content_type,
-                    "content": c.content,
-                    "video_url": c.video_url,
-                    "file_url": c.file_url,
-                    "duration": c.duration,
-                    "order": c.order,
-                    "created_at": c.created_at,
-                    "has_quiz": has_quiz
+        sections_result = await db.execute(
+            select(Section)
+            .where(Section.course_id == course_id)
+            .order_by(Section.order)
+        )
+        sections = sections_result.scalars().all()
+
+        sections_with_chapters = []
+        for section in sections:
+            chapters_result = await db.execute(
+                select(Chapter)
+                .where(Chapter.section_id == section.id)
+                .order_by(Chapter.order)
+            )
+            chapters = chapters_result.scalars().all()
+
+            chapters_with_contents = []
+            for chapter in chapters:
+                contents_result = await db.execute(
+                    select(LessonContent)
+                    .where(LessonContent.chapter_id == chapter.id)
+                    .order_by(LessonContent.order)
+                )
+                contents = contents_result.scalars().all()
+
+                contents_list = []
+                for c in contents:
+                    contents_list.append({
+                        "id": c.id,
+                        "chapter_id": c.chapter_id,
+                        "title": c.title,
+                        "content_type": c.content_type,
+                        "content": c.content,
+                        "video_url": c.video_url,
+                        "file_url": c.file_url,
+                        "duration": c.duration,
+                        "order": c.order,
+                        "created_at": c.created_at
+                    })
+
+                quiz_data = None
+                try:
+                    print(f"Chapter {chapter.id}: title={chapter.title}")
+                    quiz_result = await db.execute(
+                        select(Quiz).where(Quiz.lesson_id == chapter.id)
+                    )
+                    quiz = quiz_result.scalar_one_or_none()
+                    print(f"  Quiz found: {quiz}")
+                    if quiz:
+                        quiz_data = {
+                            "id": quiz.id,
+                            "title": quiz.title,
+                            "description": quiz.description,
+                            "passing_score": quiz.passing_score
+                        }
+                        print(f"  Quiz data: {quiz_data}")
+                except Exception as e:
+                    print(f"Quiz error: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    quiz_data = None
+                
+                chapters_with_contents.append({
+                    "id": chapter.id,
+                    "title": chapter.title,
+                    "description": chapter.description,
+                    "order": chapter.order,
+                    "contents": contents_list,
+                    "quiz": quiz_data
                 })
 
-            chapters_with_contents.append({
-                "id": chapter.id,
-                "title": chapter.title,
-                "description": chapter.description,
-                "order": chapter.order,
-                "contents": contents_list
+            sections_with_chapters.append({
+                "id": section.id,
+                "title": section.title,
+                "description": section.description,
+                "order": section.order,
+                "chapters": chapters_with_contents
             })
 
-        sections_with_chapters.append({
-            "id": section.id,
-            "title": section.title,
-            "description": section.description,
-            "order": section.order,
-            "chapters": chapters_with_contents
-        })
-
-    is_enrolled = False
-    if current_user:
-        enrollment_result = await db.execute(
-            select(Enrollment).where(
-                Enrollment.user_id == current_user.id,
-                Enrollment.course_id == course_id
+        is_enrolled = False
+        if current_user:
+            enrollment_result = await db.execute(
+                select(Enrollment).where(
+                    Enrollment.user_id == current_user.id,
+                    Enrollment.course_id == course_id
+                )
             )
-        )
-        is_enrolled = enrollment_result.scalar_one_or_none() is not None
+            is_enrolled = enrollment_result.scalar_one_or_none() is not None
 
-    return {
-        "id": course.id,
-        "title": course.title,
-        "description": course.description,
-        "cover_image": course.cover_image,
-        "author_id": course.author_id,
-        "is_published": course.is_published,
-        "is_enrolled": is_enrolled,
-        "sections": sections_with_chapters
-    }
+        return {
+            "id": course.id,
+            "title": course.title,
+            "description": course.description,
+            "cover_image": course.cover_image,
+            "author_id": course.author_id,
+            "is_published": course.is_published,
+            "is_enrolled": is_enrolled,
+            "sections": sections_with_chapters
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"get_course error: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.patch("/{course_id}", response_model=CourseResponse)

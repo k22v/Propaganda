@@ -11,21 +11,22 @@ admin_id = cursor.fetchone()[0]
 
 # Создаём курс
 cursor.execute("""
-    INSERT INTO courses (title, description, cover_image, author_id, is_published, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO courses (title, description, cover_image, author_id, is_published, specialization, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 """, (
     "Основы стоматологической помощи",
     "Полный курс для ассистентов стоматолога. Включает теоретические основы и практические навыки работы в стоматологическом кабинете.",
     None,
     admin_id,
     1,
+    "assistant",
     now,
     now
 ))
 course_id = cursor.lastrowid
 print(f'Course ID: {course_id}')
 
-# Раздел 1
+# Раздел 1: Основы работы ассистента
 cursor.execute("""
     INSERT INTO sections (course_id, title, description, "order", created_at)
     VALUES (?, ?, ?, ?, ?)
@@ -45,8 +46,21 @@ cursor.execute("""
     chapter1_id,
     "Кто такой ассистент стоматолога",
     "text",
-    """<h2>Ассистент стоматолога</h2><p>Ассистент стоматолога — специалист, помогающий врачу.</p><h3>Обязанности:</h3><ul><li>Подготовка кабинета</li><li>Подготовка инструментов</li><li>Помощь врачу</li><li>Работа с оборудованием</li></ul>""",
+    """<h2>Ассистент стоматолога</h2><p>Ассистент стоматолога — специалист, помогающий врачу во время приёма пациентов. Это важная роль в команде стоматологической клиники.</p><h3>Обязанности:</h3><ul><li>Подготовка кабинета к приёму</li><li>Подготовка инструментов и материалов</li><li>Помощь врачу во время процедур</li><li>Работа с оборудованием</li><li>Ведение документации</li></ul>""",
     1,
+    now,
+    now
+))
+
+cursor.execute("""
+    INSERT INTO lesson_contents (chapter_id, title, content_type, content, "order", created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+""", (
+    chapter1_id,
+    "Рабочее место ассистента",
+    "text",
+    """<h2>Рабочее место ассистента</h2><p>Блок ассистента включает все необходимые инструменты для помощи врачу.</p><img src="https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=800" alt="Рабочее место ассистента" style="max-width:100%;border-radius:8px;" />""",
+    2,
     now,
     now
 ))
@@ -58,13 +72,13 @@ cursor.execute("""
     chapter1_id,
     "Этикет общения",
     "text",
-    """<h2>Этикет</h2><p>Приветствие, общение, прощание с пациентом.</p>""",
-    2,
+    """<h2>Этикет общения с пациентом</h2><h3>Приветствие:</h3><ul><li>Встречать пациента с улыбкой</li><li>Обращаться по имени</li><li>Предложить удобно разместиться</li></ul><h3>Общение:</h3><ul><li>Быть вежливым и доброжелательным</li><li>Слушать внимательно</li><li>Объяснять процедуры</li></ul><h3>Прощание:</h3><ul><li>Поблагодарить за визит</li><li>Сообщить о следующем приёме</li></ul>""",
+    3,
     now,
     now
 ))
 
-# Раздел 2
+# Раздел 2: Стерилизация
 cursor.execute("""
     INSERT INTO sections (course_id, title, description, "order", created_at)
     VALUES (?, ?, ?, ?, ?)
@@ -84,13 +98,40 @@ cursor.execute("""
     chapter2_id,
     "Этапы стерилизации",
     "text",
-    """<h2>Этапы</h2><ol><li>Дезинфекция</li><li>Очистка</li><li>Стерилизация (134°C, 20 мин)</li><li>Хранение</li></ol>""",
+    """<h2>Этапы стерилизации</h2><ol><li><strong>Дезинфекция</strong> — уничтожение патогенных микроорганизмов</li><li><strong>Очистка</strong> — удаление видимых загрязнений</li><li><strong>Предстерилизационная очистка</strong> — удаление остатков биологических материалов</li><li><strong>Стерилизация</strong> — при 134°C в течение 20 минут (автоклавирование)</li><li><strong>Хранение</strong> — в стерильных контейнерах</li></ol>""",
     1,
     now,
     now
 ))
 
-# Раздел 3
+cursor.execute("""
+    INSERT INTO lesson_contents (chapter_id, title, content_type, content, "order", created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+""", (
+    chapter2_id,
+    "Автоклав",
+    "text",
+    """<h2>Автоклав — основной метод стерилизации</h2><p>Автоклавирование — наиболее надёжный метод стерилизации. Работает при температуре 134°C и давлении 2 атмосферы.</p><img src="https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?w=800" alt="Автоклав" style="max-width:100%;border-radius:8px;" />""",
+    2,
+    now,
+    now
+))
+
+cursor.execute("""
+    INSERT INTO lesson_contents (chapter_id, title, content_type, content, video_url, "order", created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+""", (
+    chapter2_id,
+    "Видео: Процесс стерилизации",
+    "video",
+    """<h2>Видеоурок: Правильная стерилизация инструментов</h2><p>Посмотрите видео, чтобы узнать правильную последовательность действий при стерилизации.</p>""",
+    "https://www.youtube.com/embed/jfKfPfyJRdk",
+    3,
+    now,
+    now
+))
+
+# Раздел 3: Оборудование
 cursor.execute("""
     INSERT INTO sections (course_id, title, description, "order", created_at)
     VALUES (?, ?, ?, ?, ?)
@@ -110,17 +151,69 @@ cursor.execute("""
     chapter3_id,
     "Устройство установки",
     "text",
-    """<h2>Части установки</h2><ul><li>Кресло</li><li>Блок врача</li><li>Блок ассистента</li><li>Светильник</li></ul>""",
+    """<h2>Части стоматологической установки</h2><ul><li><strong>Кресло пациента</strong> — регулируемое, с подголовником</li><li><strong>Блок врача</strong> — бормашина, наконечники, инструменты</li><li><strong>Блок ассистента</strong> — слюноотсос, пылесос, светофильтры</li><li><strong>Светильник</strong> — освещение рабочей зоны</li><li><strong>Монитор</strong> — для рентген-снимков и информации</li></ul>""",
     1,
+    now,
+    now
+))
+
+cursor.execute("""
+    INSERT INTO lesson_contents (chapter_id, title, content_type, content, "order", created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+""", (
+    chapter3_id,
+    "Стоматологическая установка",
+    "text",
+    """<h2>Стоматологическая установка</h2><p>Современная стоматологическая установка с креслом, блоком врача и ассистента.</p><img src="https://images.unsplash.com/photo-1609840633564-3561f8e907e0?w=800" alt="Стоматологическая установка" style="max-width:100%;border-radius:8px;" />""",
+    2,
+    now,
+    now
+))
+
+# Раздел 4: Практические навыки
+cursor.execute("""
+    INSERT INTO sections (course_id, title, description, "order", created_at)
+    VALUES (?, ?, ?, ?, ?)
+""", (course_id, "Практические навыки", "Работа с пациентами", 4, now))
+section4_id = cursor.lastrowid
+
+cursor.execute("""
+    INSERT INTO chapters (section_id, title, description, "order", created_at)
+    VALUES (?, ?, ?, ?, ?)
+""", (section4_id, "Работа с пациентом", "", 1, now))
+chapter4_id = cursor.lastrowid
+
+cursor.execute("""
+    INSERT INTO lesson_contents (chapter_id, title, content_type, content, "order", created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+""", (
+    chapter4_id,
+    "Подготовка пациента",
+    "text",
+    """<h2>Подготовка пациента к приёму</h2><ol><li>Проверить запись в расписании</li><li>Подготовить карту пациента</li><li>Приветствовать пациента</li><li>Помочь разместиться в кресле</li><li>Предложить фартук/бахилы</li><li>Спросить о самочувствии</li></ol>""",
+    1,
+    now,
+    now
+))
+
+cursor.execute("""
+    INSERT INTO lesson_contents (chapter_id, title, content_type, content, "order", created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+""", (
+    chapter4_id,
+    "Экстренные ситуации",
+    "text",
+    """<h2>Экстренные ситуации в стоматологии</h2><h3>Что делать:</h3><ul><li><strong>Обморок</strong> — уложить, обеспечить доступ воздуха, вызвать врача</li><li><strong>Кровотечение</strong> — прижать салфетку, вызвать врача</li><li><strong>Аллергия</strong> — прекратить контакт, сообщить врачу</li><li><strong>Боль</strong> — успокоить, сообщить врачу</li></ul>""",
+    2,
     now,
     now
 ))
 
 # Тест
 cursor.execute("""
-    INSERT INTO quizzes (lesson_id, title, description, passing_score, created_at)
-    VALUES (?, ?, ?, ?, ?)
-""", (chapter3_id, "Итоговый тест", "Проверка знаний", 70, now))
+    INSERT INTO quizzes (lesson_id, title, description, passing_score, max_attempts, show_correct_answers, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+""", (chapter3_id, "Итоговый тест", "Проверка знаний", 70, 3, 1, now))
 quiz_id = cursor.lastrowid
 
 questions = [
@@ -184,126 +277,6 @@ questions = [
         ("Только пол", False),
         ("Ничего", False),
     ]),
-    ("Что такое дезинфекция?", [
-        ("Уборка", False),
-        ("Уничтожение микробов", True),
-        ("Покраска", False),
-        ("Сушка", False),
-    ]),
-    ("Где хранить стерильные инструменты?", [
-        ("На столе", False),
-        ("В контейнерах", True),
-        ("В раковине", False),
-        ("На полу", False),
-    ]),
-    ("Зачем аспирация?", [
-        ("Для красоты", False),
-        ("Удалять слюну", True),
-        ("Охлаждать", False),
-        ("Светить", False),
-    ]),
-    ("Что проверяют индикаторы?", [
-        ("Время", False),
-        ("Стерилизацию", True),
-        ("Цвет", False),
-        ("Температуру в комнате", False),
-    ]),
-    ("Надёжный метод?", [
-        ("Кипячение", False),
-        ("Автоклавирование", True),
-        ("Протирание", False),
-        ("Ополаскивание", False),
-    ]),
-    ("При аллергии на перчатки?", [
-        ("Работать без них", False),
-        ("Гипоаллергенные", True),
-        ("Ничего", False),
-        ("Уволиться", False),
-    ]),
-    ("Когда мыть руки?", [
-        ("Раз в день", False),
-        ("Перед каждым приёмом", True),
-        ("Только утром", False),
-        ("Никогда", False),
-    ]),
-    ("Предстерилизационная очистка это?", [
-        ("Первое мытьё", False),
-        ("Удаление грязи перед стерилизацией", True),
-        ("Покраска", False),
-        ("Замена", False),
-    ]),
-    ("Можно ли одноразовые несколько раз?", [
-        ("Да", False),
-        ("Нет", True),
-        ("Иногда", False),
-        ("Когда хочется", False),
-    ]),
-    ("Что такое коффердам?", [
-        ("Кресло", False),
-        ("Резиновая завеса", True),
-        ("Бормашина", False),
-        ("Лекарство", False),
-    ]),
-    ("Для чего слюноотсос?", [
-        ("Пить", False),
-        ("Удалять слюну", True),
-        ("Полировать", False),
-        ("Сушить", False),
-    ]),
-    ("Сухожар сколько градусов?", [
-        ("100°C", False),
-        ("134°C", False),
-        ("180°C", True),
-        ("50°C", False),
-    ]),
-    ("Антисептик это?", [
-        ("Средство для дезинфекции", True),
-        ("Тип перчаток", False),
-        ("Инструмент", False),
-        ("Мебель", False),
-    ]),
-    ("Как обрабатывать поверхность?", [
-        ("Никак", False),
-        ("Антисептиком после каждого", True),
-        ("Раз в день", False),
-        ("Раз в месяц", False),
-    ]),
-    ("Пациент боится — что делать?", [
-        ("Смеяться", False),
-        ("Успокоить", True),
-        ("Прогнать", False),
-        ("Привязать", False),
-    ]),
-    ("Температура в кабинете?", [
-        ("Любая", False),
-        ("20-24°C", True),
-        ("Как на улице", False),
-        ("0°C", False),
-    ]),
-    ("Документация?", [
-        ("Стихи", False),
-        ("Карта, протоколы", True),
-        ("Письма", False),
-        ("Рецепты", False),
-    ]),
-    ("Что ведёт ассистент?", [
-        ("Дневник", False),
-        ("Историю болезни", True),
-        ("Газету", False),
-        ("Журнал", False),
-    ]),
-    ("Разлилась кровь?", [
-        ("Оставить", False),
-        ("Обработать дезинфекцией", True),
-        ("Засыпать", False),
-        ("Смыть просто водой", False),
-    ]),
-    ("Какие перчатки использовать?", [
-        ("Любые", False),
-        ("Стерильные", True),
-        ("Грязные", False),
-        ("Дырявые", False),
-    ]),
 ]
 
 for i, (q_text, answers) in enumerate(questions):
@@ -314,8 +287,23 @@ for i, (q_text, answers) in enumerate(questions):
         cursor.execute("INSERT INTO answers (question_id, text, is_correct, \"order\") VALUES (?, ?, ?, ?)",
             (q_id, a_text, is_correct, j+1))
 
+# Практические задания
+practice_questions = [
+    ("essay", "Подготовка кабинета", "Опишите последовательность подготовки кабинета к приёму пациента. Какие действия нужно выполнить?", 1),
+    ("essay", "Работа с оборудованием", "Перечислите основные элементы блока ассистента и их назначение.", 2),
+    ("essay", "Экстренная ситуация", "Опишите ваши действия, если пациент потерял сознание в кресле.", 3),
+    ("essay", "Стерилизация", "Расскажите об этапах стерилизации инструментов и их особенностях.", 4),
+    ("essay", "Общение с пациентом", "Как правильно приветствовать пациента и подготовить его к осмотру?", 5),
+]
+
+for pq_type, pq_text, pq_desc, _ in practice_questions:
+    cursor.execute("""
+        INSERT INTO practice_questions (course_id, question_text, question_type, explanation, is_active, created_at)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (course_id, pq_text, pq_type, pq_desc, 1, now))
+
 conn.commit()
-print(f'Course {course_id} created with 30 questions!')
-print('Done')
+print('Course {} created!'.format(course_id))
+print('Done!')
 
 conn.close()
