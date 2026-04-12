@@ -16,20 +16,20 @@ async def get_course_reviews(
     course_id: int,
     db: AsyncSession = Depends(get_db)
 ):
-    print(f"Loading reviews for course_id={course_id}")
     try:
         result = await db.execute(
             select(Review).where(Review.course_id == course_id)
             .options(selectinload(Review.user))
             .order_by(Review.created_at.desc())
         )
-        reviews = result.scalars().all()
-        print(f"Found {len(reviews)} reviews")
-        print(f"First review: {reviews[0] if reviews else 'none'}")
+        reviews = list(result.scalars().all())
+        
+        if not reviews:
+            return []
         
         reviews_data = []
         for r in reviews:
-            review_dict = {
+            reviews_data.append({
                 "id": r.id,
                 "user_id": r.user_id,
                 "course_id": r.course_id,
@@ -43,8 +43,7 @@ async def get_course_reviews(
                     "full_name": r.user.full_name,
                     "avatar_id": r.user.avatar_id
                 } if r.user else None
-            }
-            reviews_data.append(review_dict)
+            })
         
         return reviews_data
     except Exception as e:

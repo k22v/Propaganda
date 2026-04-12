@@ -137,14 +137,12 @@ async def update_profile(
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        print(f"Update profile: user_id={current_user.id}, data={data}")
         if data.full_name is not None:
             current_user.full_name = data.full_name
         if data.specialization is not None:
             current_user.specialization = data.specialization
         await db.commit()
         await db.refresh(current_user)
-        print(f"Profile updated: {current_user}")
         return current_user
     except Exception as e:
         import traceback
