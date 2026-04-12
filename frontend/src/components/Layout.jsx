@@ -80,8 +80,7 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
       <nav className="navbar">
         <div className="nav-container">
           <Link to="/" className="logo">
-            <img src="/blacklogo.png" alt="Logo" className="logo-img logo-dark" />
-            <img src="/whitelogo.png" alt="Logo" className="logo-img logo-light" />
+            <img src="/propaganda-wordmark.svg" alt="Logo" className="logo-img" />
           </Link>
           <div className="nav-links">
             <Link to="/courses">Все курсы</Link>
@@ -183,8 +182,7 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
         <div className="footer-content">
           <div className="footer-section">
             <div className="footer-logo">
-              <img src="/blacklogo.png" alt="Logo" className="footer-logo-img logo-dark" />
-              <img src="/whitelogo.png" alt="Logo" className="footer-logo-img logo-light" />
+              <img src="/propaganda-wordmark.svg" alt="Logo" className="footer-logo-img" style={{height: '30px'}} />
             </div>
             <p className="footer-text">© 2024 Пропаганда ДВ. Все права защищены.</p>
           </div>
@@ -196,9 +194,6 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
             <h4>Мы на карте</h4>
             <div className="footer-map">
               <MapWidget />
-              <a href="https://2gis.ru/khabarovsk/geo/4926447747626006" target="_blank" rel="noopener noreferrer" className="map-link">
-                📍 Открыть карту
-              </a>
             </div>
           </div>
         </div>
