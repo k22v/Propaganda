@@ -273,7 +273,6 @@ export default function AdminDashboard() {
                       <option value="">-</option>
                       <option value="dentist">Dentist</option>
                       <option value="assistant">Assistant</option>
-                      <option value="hygienist">Hygienist</option>
                       <option value="technician">Technician</option>
                       <option value="clinic_admin">Clinic Admin</option>
                     </select>

@@ -26,7 +26,6 @@ const SPECIALIZATIONS = [
   { value: '', label: 'Не выбрана' },
   { value: 'dentist', label: 'Стоматолог' },
   { value: 'assistant', label: 'Ассистент стоматолога' },
-  { value: 'hygienist', label: 'Гигиенист' },
   { value: 'technician', label: 'Зубной техник' },
   { value: 'clinic_admin', label: 'Администратор клиники' },
 ]

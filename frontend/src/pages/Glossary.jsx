@@ -223,7 +223,6 @@ function Glossary() {
                     <option value="">Все специализации</option>
                     <option value="dentist">Врач-стоматолог</option>
                     <option value="assistant">Ассистент стоматолога</option>
-                    <option value="hygienist">Гигиенист</option>
                     <option value="technician">Зубной техник</option>
                     <option value="clinic_admin">Администратор клиники</option>
                   </select>

@@ -106,7 +106,7 @@ async def update_user_specialization(
     admin: User = Depends(require_admin)
 ):
     print(f"DEBUG: update_user_specialization called for user {user_id} with specialization '{data.specialization}'")
-    valid_specializations = ["dentist", "assistant", "hygienist", "technician", "clinic_admin"]
+    valid_specializations = ["dentist", "assistant", "technician", "clinic_admin"]
     specialization = data.specialization
     if specialization and specialization not in valid_specializations:
         raise HTTPException(status_code=400, detail="Invalid specialization")

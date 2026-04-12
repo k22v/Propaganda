@@ -98,7 +98,6 @@ function getSpecializationLabel(spec) {
     assistant: 'Ассистент',
     technician: 'Техник',
     clinic_admin: 'Админ',
-    hygienist: 'Гигиенист'
   }
   return labels[spec] || spec
 }

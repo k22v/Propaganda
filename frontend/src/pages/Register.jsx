@@ -11,7 +11,6 @@ function Register() {
   const specializations = [
     { value: 'dentist', label: 'Врач-стоматолог' },
     { value: 'assistant', label: 'Ассистент стоматолога' },
-    { value: 'hygienist', label: 'Гигиенист' },
     { value: 'technician', label: 'Зубной техник' },
     { value: 'clinic_admin', label: 'Администратор клиники' },
   ]
