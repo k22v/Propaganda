@@ -281,3 +281,7 @@ class Review(Base):
 
     user: Mapped["User"] = relationship("User")
     course: Mapped["Course"] = relationship("Course", back_populates="reviews")
+
+    __table_args__ = (
+        {'extend_existing': True}
+    )
