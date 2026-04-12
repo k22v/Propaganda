@@ -407,6 +407,7 @@ class UserUpdateAvatar(BaseModel):
 
 class UserUpdateProfile(BaseModel):
     full_name: Optional[str] = None
+    specialization: Optional[str] = None
 
 
 class PasswordChange(BaseModel):

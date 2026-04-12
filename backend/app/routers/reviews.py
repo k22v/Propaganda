@@ -16,6 +16,7 @@ async def get_course_reviews(
     course_id: int,
     db: AsyncSession = Depends(get_db)
 ):
+    print(f"Loading reviews for course_id={course_id}")
     try:
         result = await db.execute(
             select(Review).where(Review.course_id == course_id)
@@ -23,6 +24,8 @@ async def get_course_reviews(
             .order_by(Review.created_at.desc())
         )
         reviews = result.scalars().all()
+        print(f"Found {len(reviews)} reviews")
+        print(f"First review: {reviews[0] if reviews else 'none'}")
         
         reviews_data = []
         for r in reviews:
@@ -45,8 +48,10 @@ async def get_course_reviews(
         
         return reviews_data
     except Exception as e:
+        import traceback
         print(f"Error loading reviews: {e}")
-        raise
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/course/{course_id}/stats")
