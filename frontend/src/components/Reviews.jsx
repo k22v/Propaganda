@@ -11,6 +11,21 @@ function Reviews({ courseId, isEnrolled }) {
   const [myReview, setMyReview] = useState(null)
   const [form, setForm] = useState({ rating: 5, comment: '' })
 
+  const ANIMALS = [
+    { id: 1, emoji: '🦊' }, { id: 2, emoji: '🐼' }, { id: 3, emoji: '🦁' },
+    { id: 4, emoji: '🐯' }, { id: 5, emoji: '🐨' }, { id: 6, emoji: '🐸' },
+    { id: 7, emoji: '🐵' }, { id: 8, emoji: '🦄' }, { id: 9, emoji: '🐲' },
+    { id: 10, emoji: '🐙' }, { id: 11, emoji: '🦋' }, { id: 12, emoji: '🐢' },
+    { id: 13, emoji: '🦩' }, { id: 14, emoji: '🐳' }, { id: 15, emoji: '🦉' },
+    { id: 16, emoji: '🦅' },
+  ]
+
+  const getAvatarEmoji = (avatarId) => {
+    if (!avatarId) return '👤'
+    const animal = ANIMALS.find(a => a.id === avatarId)
+    return animal?.emoji || '👤'
+  }
+
   useEffect(() => {
     loadReviews()
   }, [courseId])
@@ -143,7 +158,7 @@ function Reviews({ courseId, isEnrolled }) {
               <div className="review-header">
                 <div className="review-author">
                   <span className="author-avatar">
-                    {review.user?.avatar_id ? '🦊' : '👤'}
+                    {getAvatarEmoji(review.user?.avatar_id)}
                   </span>
                   <span className="author-name">
                     {review.user?.full_name || review.user?.username || 'Пользователь'}
@@ -151,15 +166,17 @@ function Reviews({ courseId, isEnrolled }) {
                 </div>
                 <div className="review-meta">
                   {renderStars(review.rating)}
-                  {myReview?.id === review.id && (
-                    <button className="btn-delete-review" onClick={() => handleDelete(review.id)}>×</button>
-                  )}
                 </div>
               </div>
               {review.comment && <p className="review-comment">{review.comment}</p>}
-              <span className="review-date">
-                {new Date(review.created_at).toLocaleDateString('ru-RU')}
-              </span>
+              <div className="review-footer">
+                <span className="review-date">
+                  {new Date(review.created_at).toLocaleDateString('ru-RU')}
+                </span>
+                {myReview?.id === review.id && (
+                  <button className="btn-delete-review" onClick={() => handleDelete(review.id)}>Удалить</button>
+                )}
+              </div>
             </div>
           ))
         )}

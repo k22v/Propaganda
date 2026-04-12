@@ -16,6 +16,7 @@ async def get_course_reviews(
     course_id: int,
     db: AsyncSession = Depends(get_db)
 ):
+    print(f"=== GET reviews for course {course_id} ===")
     try:
         result = await db.execute(
             select(Review).where(Review.course_id == course_id)
@@ -23,32 +24,12 @@ async def get_course_reviews(
             .order_by(Review.created_at.desc())
         )
         reviews = list(result.scalars().all())
+        print(f"Reviews found: {len(reviews)}")
         
-        if not reviews:
-            return []
-        
-        reviews_data = []
-        for r in reviews:
-            reviews_data.append({
-                "id": r.id,
-                "user_id": r.user_id,
-                "course_id": r.course_id,
-                "rating": r.rating,
-                "comment": r.comment,
-                "created_at": r.created_at,
-                "updated_at": r.updated_at,
-                "user": {
-                    "id": r.user.id,
-                    "username": r.user.username,
-                    "full_name": r.user.full_name,
-                    "avatar_id": r.user.avatar_id
-                } if r.user else None
-            })
-        
-        return reviews_data
+        return reviews
     except Exception as e:
         import traceback
-        print(f"Error loading reviews: {e}")
+        print(f"Error: {e}")
         print(traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
 
