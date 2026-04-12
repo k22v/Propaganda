@@ -141,6 +141,7 @@ export const adminApi = {
   getUsers: () => api.get('/admin/users'),
   getUser: (id) => api.get(`/admin/users/${id}`),
   updateUserRole: (id, role) => api.patch(`/admin/users/${id}/role`, { role }),
+  updateUserSpecialization: (id, specialization) => api.patch(`/admin/users/${id}/specialization`, { specialization }),
   toggleUserBlock: (id) => api.patch(`/admin/users/${id}/block`),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
   getQuizResults: () => api.get('/admin/quiz-results'),

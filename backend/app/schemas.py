@@ -47,6 +47,14 @@ class UserResponse(BaseModel):
     created_at: datetime
 
 
+class UpdateUserRole(BaseModel):
+    role: str
+
+
+class UpdateUserSpecialization(BaseModel):
+    specialization: Optional[str] = None
+
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -409,7 +417,6 @@ class UserUpdateAvatar(BaseModel):
 
 class UserUpdateProfile(BaseModel):
     full_name: Optional[str] = None
-    specialization: Optional[str] = None
 
 
 class PasswordChange(BaseModel):

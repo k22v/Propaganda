@@ -306,3 +306,94 @@
   gap: 0.75rem;
   justify-content: flex-end;
 }
+
+.course-dates {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.course-dates p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+}
+
+.countdown-timer {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: var(--radius-md);
+  color: white;
+}
+
+.countdown-timer p {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.countdown-days {
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.course-specialization-edit {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.course-specialization-edit label {
+  font-weight: 500;
+}
+
+.course-specialization-edit select {
+  padding: 0.5rem 1rem !important;
+  border-radius: var(--radius-sm) !important;
+  border: none !important;
+  background: linear-gradient(180deg, #1a6ce8 0%, #015ED9 100%) !important;
+  color: white !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  min-width: 180px !important;
+  box-shadow: 0 2px 8px rgba(1, 94, 217, 0.25) !important;
+}
+
+.course-specialization-edit select:hover {
+  background: linear-gradient(180deg, #1a7af8 0%, #0068d6 100%) !important;
+  box-shadow: 0 4px 12px rgba(1, 94, 217, 0.35) !important;
+}
+
+.course-specialization-edit select option,
+.admin-table-select option {
+  background: white !important;
+  color: var(--color-text) !important;
+}
+
+.admin-table-select {
+  padding: 0.4rem 0.8rem !important;
+  border-radius: var(--radius-sm) !important;
+  border: none !important;
+  background: linear-gradient(180deg, #1a6ce8 0%, #015ED9 100%) !important;
+  color: white !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  font-size: 0.85rem !important;
+  box-shadow: 0 2px 8px rgba(1, 94, 217, 0.25) !important;
+}
+
+.admin-table-select:hover {
+  background: linear-gradient(180deg, #1a7af8 0%, #0068d6 100%) !important;
+  box-shadow: 0 4px 12px rgba(1, 94, 217, 0.35) !important;
+}
+
+.admin-table-select option {
+  background: white;
+  color: var(--color-text);
+}

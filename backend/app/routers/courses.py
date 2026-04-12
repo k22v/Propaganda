@@ -43,8 +43,20 @@ async def list_courses(
     else:
         specialization = current_user.specialization
     
-    if specialization:
-        query = query.where(or_(Course.specialization == specialization, Course.specialization == None))
+    # For superuser: allow filtering by specialization if explicitly selected
+    # For regular users: filter by their own specialization
+    if current_user.is_superuser:
+        if specialization:
+            query = query.where(or_(Course.specialization == specialization, Course.specialization == None))
+        # else: superuser sees all courses (no filter)
+    elif specialization:
+        query = query.where(Course.specialization == current_user.specialization)
+    else:
+        user_spec = current_user.specialization
+        if user_spec:
+            query = query.where(Course.specialization == user_spec)
+        else:
+            query = query.where(Course.specialization == None)
     
     result = await db.execute(
         query.options(selectinload(Course.author))
@@ -159,13 +171,32 @@ async def get_course(
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
 
+        user_spec = current_user.specialization
+        course_spec = course.specialization
+        
         if not current_user.is_superuser:
-            user_spec = current_user.specialization or ''
-            course_spec = course.specialization or ''
-            if course_spec and user_spec and course_spec != user_spec:
+            if course_spec and user_spec != course_spec:
                 raise HTTPException(
                     status_code=403,
-                    detail=f"Этот курс предназначен для специализации: {course_spec}. Ваша специализация: {user_spec}"
+                    detail=f"Этот курс для специализации: {course_spec}. Ваша: {user_spec}"
+                )
+            if course_spec and not user_spec:
+                raise HTTPException(
+                    status_code=403,
+                    detail="Установите специализацию в профиле"
+                )
+
+        now = datetime.utcnow()
+        if course.start_date and course.end_date and not current_user.is_superuser:
+            if now < course.start_date:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Курс будет доступен с {course.start_date.strftime('%d.%m.%Y')}"
+                )
+            if now > course.end_date:
+                raise HTTPException(
+                    status_code=403,
+                    detail=f"Срок прохождения курса истёк {course.end_date.strftime('%d.%m.%Y')}"
                 )
 
         sections_result = await db.execute(
@@ -265,6 +296,9 @@ async def get_course(
             "author_id": course.author_id,
             "is_published": course.is_published,
             "is_enrolled": is_enrolled,
+            "specialization": course.specialization,
+            "start_date": course.start_date,
+            "end_date": course.end_date,
             "sections": sections_with_chapters
         }
     except HTTPException:
@@ -328,6 +362,9 @@ async def update_course(
         "cover_image": course.cover_image,
         "author_id": course.author_id,
         "is_published": course.is_published,
+        "specialization": course.specialization,
+        "start_date": course.start_date,
+        "end_date": course.end_date,
         "created_at": course.created_at,
         "updated_at": course.updated_at,
         "lessons_count": lessons_count
@@ -766,11 +803,19 @@ async def get_content(
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
 
-    if not current_user.is_superuser and course.specialization != current_user.specialization:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Этот курс предназначен для специализации: {course.specialization}. Ваша специализация: {current_user.specialization}"
-        )
+    if not current_user.is_superuser:
+        user_spec = (current_user.specialization or '').strip().lower()
+        course_spec = (course.specialization or '').strip().lower()
+        if course_spec and user_spec != course_spec:
+            raise HTTPException(
+                status_code=403,
+                detail=f"Этот курс предназначен для специализации: {course_spec}. Ваша специализация: {user_spec}"
+            )
+        if course_spec and not user_spec:
+            raise HTTPException(
+                status_code=403,
+                detail="Для доступа к курсу установите специализацию в профиле"
+            )
 
     if not course.is_published and not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Course not available")

@@ -63,18 +63,16 @@ function Profile() {
   const wrappedApi = withToastHandler({
     saveProfile: async () => {
       const hasNameChanged = fullName !== (user.full_name || '')
-      const hasSpecChanged = specialization !== (user.specialization || '')
       const hasAvatarChanged = selectedAvatar !== user.avatar_id
 
-      if (!hasNameChanged && !hasSpecChanged && !hasAvatarChanged) {
+      if (!hasNameChanged && !hasAvatarChanged) {
         showToast('Нечего сохранять', 'info')
         return
       }
 
-      if (hasSpecChanged || hasNameChanged) {
+      if (hasNameChanged) {
         await authApi.updateProfile({
           full_name: fullName,
-          specialization: specialization
         })
       }
 
@@ -152,11 +150,12 @@ function Profile() {
 
           <div className="form-group">
             <label>Специализация</label>
-            <select value={specialization} onChange={(e) => setSpecialization(e.target.value)}>
+            <select value={specialization} disabled>
               {SPECIALIZATIONS.map(spec => (
                 <option key={spec.value} value={spec.value}>{spec.label}</option>
               ))}
             </select>
+            <small style={{color: '#666'}}>Изменить специализацию может только администратор</small>
           </div>
 
           <div className="form-group">

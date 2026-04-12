@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { authApi, adminApi } from '../api'
 import { StatsCharts } from '../components/StatsCharts'
+import '../components/CourseDetail.css'
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null)
@@ -112,11 +113,46 @@ export default function AdminDashboard() {
   }
 
   const updateRole = async (userId, role) => {
+    console.log('updateRole called:', userId, role)
     try {
-      await adminApi.updateUserRole(userId, role)
-      loadData()
+      console.log('Sending PATCH request to:', `/admin/users/${userId}/role`, 'with role:', role)
+      const res = await adminApi.updateUserRole(userId, role)
+      console.log('updateRole response:', res)
+      window.location.reload()
     } catch (err) {
       console.error('Role update error:', err)
+      let errorMsg = 'Unknown error'
+      if (err.response) {
+        errorMsg = err.response.data?.detail || JSON.stringify(err.response.data)
+      } else if (err.request) {
+        errorMsg = 'No response from server'
+      } else {
+        errorMsg = err.message
+      }
+      alert('Ошибка при обновлении роли: ' + errorMsg)
+    }
+  }
+
+  const updateSpecialization = async (userId, specialization) => {
+    console.log('updateSpecialization called:', userId, specialization)
+    const value = specialization === '' ? null : specialization
+    try {
+      console.log('Sending PATCH request to:', `/admin/users/${userId}/specialization`, 'with value:', value)
+      const res = await adminApi.updateUserSpecialization(userId, value)
+      console.log('updateSpecialization response:', res)
+      console.log('Updated user data:', res.data)
+      window.location.reload()
+    } catch (err) {
+      console.error('Specialization update error:', err)
+      let errorMsg = 'Unknown error'
+      if (err.response) {
+        errorMsg = err.response.data?.detail || JSON.stringify(err.response.data)
+      } else if (err.request) {
+        errorMsg = 'No response from server'
+      } else {
+        errorMsg = err.message
+      }
+      alert('Ошибка при обновлении специализации: ' + errorMsg)
     }
   }
 
@@ -219,6 +255,7 @@ export default function AdminDashboard() {
                   <td>{user.email}</td>
                   <td>
                     <select 
+                      className="admin-table-select"
                       value={user.role}
                       onChange={(e) => updateRole(user.id, e.target.value)}
                     >
@@ -227,7 +264,20 @@ export default function AdminDashboard() {
                       <option value="admin">Admin</option>
                     </select>
                   </td>
-                  <td>{user.specialization || '-'}</td>
+                  <td>
+                    <select 
+                      className="admin-table-select"
+                      value={user.specialization || ''}
+                      onChange={(e) => updateSpecialization(user.id, e.target.value || null)}
+                    >
+                      <option value="">-</option>
+                      <option value="dentist">Dentist</option>
+                      <option value="assistant">Assistant</option>
+                      <option value="hygienist">Hygienist</option>
+                      <option value="technician">Technician</option>
+                      <option value="clinic_admin">Clinic Admin</option>
+                    </select>
+                  </td>
                   <td>
                     <span className={user.is_active ? 'status-active' : 'status-blocked'}>
                       {user.is_active ? 'Активен' : 'Заблокирован'}

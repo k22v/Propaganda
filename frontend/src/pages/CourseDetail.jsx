@@ -7,6 +7,41 @@ import { ToastContainer, useToast, withToastHandler } from '../components/Toast'
 import '../components/CourseDetail.css'
 import '../components/ContentModal.css'
 
+function CountdownTimer({ startDate }) {
+  const [timeLeft, setTimeLeft] = useState(null)
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const start = new Date(startDate)
+      const now = new Date()
+      const diff = start - now
+      if (diff <= 0) return null
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      return { days, hours, minutes }
+    }
+
+    setTimeLeft(calculateTimeLeft())
+    const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 60000)
+    return () => clearInterval(timer)
+  }, [startDate])
+
+  if (!timeLeft) return null
+
+  return (
+    <div className="countdown-timer">
+      <p>⏰ До начала курса:</p>
+      <div className="countdown-days">
+        {timeLeft.days > 0 && <span>{timeLeft.days} дн. </span>}
+        {timeLeft.hours > 0 && <span>{timeLeft.hours} ч. </span>}
+        {timeLeft.minutes > 0 && <span>{timeLeft.minutes} мин.</span>}
+      </div>
+    </div>
+  )
+}
+
 function CourseDetail() {
   const { courseId: id } = useParams()
   const navigate = useNavigate()
@@ -44,6 +79,8 @@ function CourseDetail() {
   const isAuthor = currentUser && course && String(currentUser.id) === String(course.author_id)
   const isSuperuser = currentUser && currentUser.is_superuser
   const canEdit = isAuthor || isSuperuser
+
+  console.log('DEBUG: currentUser:', currentUser, 'isSuperuser:', isSuperuser)
 
   const wrappedApi = withToastHandler({
     addSection: async () => {
@@ -166,6 +203,22 @@ function CourseDetail() {
   const handleDeleteContent = (contentId) => wrappedApi.deleteContent(contentId)
   const handleTogglePublish = () => wrappedApi.togglePublish()
 
+  const updateSpecialization = async (specialization) => {
+    console.log('updateSpecialization called with:', specialization)
+    try {
+      console.log('Calling API with specialization:', specialization)
+      const response = await coursesApi.update(id, { specialization: specialization || null })
+      console.log('API response:', response)
+      console.log('Reloading data...')
+      await loadData()
+      console.log('Data reloaded')
+      showToast('Специализация обновлена', 'success')
+    } catch (err) {
+      console.error('Error updating specialization:', err.response || err)
+      showToast(err.response?.data?.detail || 'Ошибка обновления', 'error')
+    }
+  }
+
   const openContentModal = (chapterId) => {
     setSelectedChapterId(chapterId)
     setShowContentModal(true)
@@ -176,6 +229,22 @@ function CourseDetail() {
 
   return (
     <div className="course-detail-page">
+      {isSuperuser && (
+        <div className="course-specialization-edit">
+          <label>Специализация курса:</label>
+          <select 
+            value={course.specialization || ''}
+            onChange={(e) => updateSpecialization(e.target.value)}
+          >
+            <option value="">Без специализации</option>
+            <option value="dentist">Врач-стоматолог</option>
+            <option value="assistant">Ассистент стоматолога</option>
+            <option value="hygienist">Гигиенист</option>
+            <option value="technician">Зубной техник</option>
+            <option value="clinic_admin">Администратор клиники</option>
+          </select>
+        </div>
+      )}
       <div className="course-header">
         <h1>{course.title}</h1>
         {canEdit && (
@@ -275,9 +344,6 @@ function CourseDetail() {
           {course.specializationError ? (
             <div className="locked-message">
               <p>⛔ {course.error || 'Доступ к этому курсу запрещён'}</p>
-              <p style={{ fontSize: '0.9rem', marginTop: '0.5rem', opacity: 0.8 }}>
-                Этот курс предназначен для другой специализации. Выберите курс, соответствующий вашей специализации.
-              </p>
               <Link to="/courses" className="btn btn-primary" style={{ marginTop: '1rem' }}>К курсам</Link>
             </div>
           ) : course.is_published ? (
@@ -291,6 +357,14 @@ function CourseDetail() {
               </div>
             ) : !course.is_enrolled ? (
               <div className="locked-message">
+                {course.start_date && course.end_date && (
+                  <div className="course-dates">
+                    <p>📅 Период обучения: {new Date(course.start_date).toLocaleDateString('ru-RU')} - {new Date(course.end_date).toLocaleDateString('ru-RU')}</p>
+                  </div>
+                )}
+                {course.start_date && new Date(course.start_date) > new Date() && (
+                  <CountdownTimer startDate={course.start_date} />
+                )}
                 <p>Запишитесь на курс для доступа к материалам</p>
                 <button onClick={async () => { 
                   try { 
@@ -298,7 +372,7 @@ function CourseDetail() {
                     loadData(); 
                     showToast('Вы записаны на курс!', 'success')
                   } catch (err) {
-                    showToast('Ошибка записи на курс', 'error')
+                    showToast(err.response?.data?.detail || 'Ошибка записи на курс', 'error')
                   }
                 }} className="btn btn-primary">Записаться</button>
               </div>

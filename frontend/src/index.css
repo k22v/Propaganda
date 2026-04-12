@@ -491,7 +491,10 @@ h1, h2, h3, h4, h5, h6 {
 .footer-section h4 {
   margin: 0 0 0.5rem 0;
   font-size: 0.9rem;
-  color: var(--color-text);
+  background: linear-gradient(180deg, #1a6ce8 0%, #015ED9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .footer-logo-img {
@@ -503,7 +506,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .footer-text {
-  color: var(--color-text-secondary);
+  background: linear-gradient(180deg, #1a6ce8 0%, #015ED9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-size: 0.9rem;
 }
 
@@ -511,6 +517,10 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--color-primary);
   text-decoration: none;
   font-size: 0.9rem;
+  background: linear-gradient(180deg, #1a6ce8 0%, #015ED9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .footer-section a:hover {
