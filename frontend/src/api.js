@@ -51,6 +51,7 @@ export const authApi = {
     return api.post('/auth/logout')
   },
   getMe: () => api.get('/auth/me'),
+  getProfileStats: () => api.get('/auth/profile-stats'),
   updateAvatar: (avatarId) => api.put('/auth/avatar', { avatar_id: avatarId }),
   updateProfile: (data) => api.put('/auth/profile', data),
   changePassword: (data) => api.post('/auth/change-password', data),
@@ -102,7 +103,6 @@ export const quizApi = {
   create: (data) => api.post('/quizzes/', data),
   submit: (quizId, answers) => api.post(`/quizzes/${quizId}/attempt`, { answers }),
   getBestAttempt: (quizId) => api.get(`/quizzes/attempt/${quizId}/best`),
-  getMyCertificates: () => api.get('/quizzes/certificates/my'),
 }
 
 export const templatesApi = {

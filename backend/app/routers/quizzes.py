@@ -4,23 +4,17 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from typing import List
 import json
-import uuid
 from datetime import datetime
 from app.database import get_db
-from app.models import User, Course, Section, Chapter, LessonContent, Enrollment, Quiz, Question, Answer, QuizAttempt, Certificate, LessonProgress
+from app.models import User, Course, Section, Chapter, LessonContent, Enrollment, Quiz, Question, Answer, QuizAttempt, LessonProgress
 from app.schemas import (
     QuizCreate, QuizUpdate, QuizResponse, QuizWithQuestionsResponse, 
     QuestionResponse, AnswerResponse,
-    QuizAttemptCreate, QuizAttemptResponse,
-    CertificateResponse
+    QuizAttemptCreate, QuizAttemptResponse
 )
 from app.auth import get_current_active_user
 
 router = APIRouter(prefix="/quizzes", tags=["quizzes"])
-
-
-def generate_certificate_number():
-    return f"DENT-{uuid.uuid4().hex[:8].upper()}"
 
 
 @router.post("/", response_model=QuizResponse)
@@ -279,44 +273,7 @@ async def submit_quiz_attempt(
     await db.commit()
     await db.refresh(attempt)
 
-    if passed:
-        await check_and_generate_certificate(enrollment.id, current_user.full_name or current_user.username, course_id, db)
-
     return attempt
-
-
-async def check_and_generate_certificate(enrollment_id: int, user_name: str, course_id: int, db: AsyncSession):
-    result = await db.execute(
-        select(QuizAttempt).where(
-            QuizAttempt.enrollment_id == enrollment_id,
-            QuizAttempt.passed == True
-        )
-    )
-    all_quizzes_passed = result.scalars().all()
-
-    result = await db.execute(
-        select(Quiz).join(LessonContent, Quiz.lesson_id == LessonContent.id).join(Chapter, LessonContent.chapter_id == Chapter.id).join(Section, Chapter.section_id == Section.id).where(Section.course_id == course_id)
-    )
-    required_quizzes = result.scalars().all()
-
-    if len(all_quizzes_passed) >= len(required_quizzes) and len(required_quizzes) > 0:
-        result = await db.execute(
-            select(Certificate).where(Certificate.enrollment_id == enrollment_id)
-        )
-        if not result.scalar_one_or_none():
-            result = await db.execute(
-                select(Course).where(Course.id == course_id)
-            )
-            course = result.scalar_one_or_none()
-            
-            cert = Certificate(
-                enrollment_id=enrollment_id,
-                certificate_number=generate_certificate_number(),
-                course_title=course.title if course else "Unknown Course",
-                user_name=user_name
-            )
-            db.add(cert)
-            await db.commit()
 
 
 @router.get("/attempt/{quiz_id}/best", response_model=QuizAttemptResponse)
@@ -361,14 +318,3 @@ async def get_best_attempt(
     if not attempt:
         raise HTTPException(status_code=404, detail="No attempts yet")
     return attempt
-
-
-@router.get("/certificates/my", response_model=List[CertificateResponse])
-async def get_my_certificates(
-    current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db)
-):
-    result = await db.execute(
-        select(Certificate).join(Enrollment).where(Enrollment.user_id == current_user.id)
-    )
-    return result.scalars().all()

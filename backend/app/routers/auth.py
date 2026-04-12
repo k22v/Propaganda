@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Response, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from datetime import timedelta
 from app.database import get_db
-from app.models import User
+from app.models import User, Enrollment, Review, Course
 from app.schemas import UserCreate, UserResponse, Token, UserUpdateAvatar, UserUpdateProfile, PasswordChange
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_active_user
 from app.config import settings
@@ -73,6 +73,10 @@ async def login(request: Request,
 
         remember_me = "remember_me" in (form_data.scopes or [])
         expire_minutes = settings.remember_me_expire_days * 24 * 60 if remember_me else settings.access_token_expire_minutes
+
+        from datetime import datetime
+        user.last_login = datetime.utcnow()
+        await db.commit()
 
         access_token = create_access_token(
             data={"sub": str(user.id)},
@@ -159,3 +163,71 @@ async def change_password(
     current_user.hashed_password = get_password_hash(data.new_password)
     await db.commit()
     return {"message": "Пароль успешно изменён"}
+
+
+@router.get("/profile-stats")
+async def get_profile_stats(
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    try:
+        courses_count_result = await db.execute(
+            select(func.count(Enrollment.id)).where(Enrollment.user_id == current_user.id)
+        )
+        courses_count = courses_count_result.scalar() or 0
+    except Exception as e:
+        print(f"Error getting courses_count: {e}")
+        courses_count = 0
+    
+    try:
+        completed_result = await db.execute(
+            select(func.count(Enrollment.id)).where(
+                Enrollment.user_id == current_user.id,
+                Enrollment.completed == True
+            )
+        )
+        completed_count = completed_result.scalar() or 0
+    except Exception as e:
+        print(f"Error getting completed_count: {e}")
+        completed_count = 0
+    
+    try:
+        reviews_count_result = await db.execute(
+            select(func.count(Review.id)).where(Review.user_id == current_user.id)
+        )
+        reviews_count = reviews_count_result.scalar() or 0
+    except Exception as e:
+        print(f"Error getting reviews_count: {e}")
+        reviews_count = 0
+    
+    try:
+        reviews_result = await db.execute(
+            select(Review, Course.title)
+            .join(Course, Review.course_id == Course.id)
+            .where(Review.user_id == current_user.id)
+            .order_by(Review.created_at.desc())
+            .limit(10)
+        )
+        
+        reviews = []
+        for row in reviews_result.all():
+            review, course_title = row
+            reviews.append({
+                "id": review.id,
+                "rating": review.rating,
+                "text": review.comment,
+                "created_at": review.created_at.isoformat() if review.created_at else None,
+                "course_title": course_title
+            })
+    except Exception as e:
+        print(f"Error loading reviews: {e}")
+        reviews = []
+    
+    return {
+        "courses_count": courses_count,
+        "completed_count": completed_count,
+        "reviews_count": reviews_count,
+        "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
+        "last_login": current_user.last_login.isoformat() if current_user.last_login else None,
+        "reviews": reviews
+    }

@@ -38,6 +38,7 @@ class User(Base):
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False)
     avatar_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)  # ID аватарки (животные)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    last_login: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     courses: Mapped[List["Course"]] = relationship("Course", back_populates="author")
     enrollments: Mapped[List["Enrollment"]] = relationship("Enrollment", back_populates="user", cascade="all, delete-orphan")
@@ -198,19 +199,6 @@ class QuizAttempt(Base):
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     quiz: Mapped["Quiz"] = relationship("Quiz", back_populates="attempts")
-    enrollment: Mapped["Enrollment"] = relationship("Enrollment")
-
-
-class Certificate(Base):
-    __tablename__ = "certificates"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    enrollment_id: Mapped[int] = mapped_column(ForeignKey("enrollments.id"))
-    certificate_number: Mapped[str] = mapped_column(String(50), unique=True, index=True)
-    issued_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    course_title: Mapped[str] = mapped_column(String(500))
-    user_name: Mapped[str] = mapped_column(String(255))
-
     enrollment: Mapped["Enrollment"] = relationship("Enrollment")
 
 

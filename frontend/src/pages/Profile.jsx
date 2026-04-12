@@ -35,6 +35,7 @@ function Profile() {
   const navigate = useNavigate()
   const { toast, showToast, closeToast } = useToast()
   const [user, setUser] = useState(null)
+  const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
   const [selectedAvatar, setSelectedAvatar] = useState(null)
   const [fullName, setFullName] = useState('')
@@ -44,6 +45,7 @@ function Profile() {
 
   useEffect(() => {
     loadUser()
+    loadStats()
   }, [])
 
   const loadUser = async () => {
@@ -57,6 +59,16 @@ function Profile() {
       showToast('Ошибка загрузки профиля', 'error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadStats = async () => {
+    try {
+      const { data } = await authApi.getProfileStats()
+      setStats(data)
+      console.log('Stats loaded:', data)
+    } catch (err) {
+      console.error('Failed to load stats', err.response?.data || err.message)
     }
   }
 
@@ -166,6 +178,46 @@ function Profile() {
               disabled 
             />
           </div>
+
+          {stats !== null && (
+            <div className="profile-stats">
+              <h3>📊 Моя статистика</h3>
+              <div className="stats-grid">
+                <div className="stat-card">
+                  <span className="stat-value">{stats.courses_count}</span>
+                  <span className="stat-label">Курсов</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-value">{stats.completed_count}</span>
+                  <span className="stat-label">Завершено</span>
+                </div>
+                <div className="stat-card">
+                  <span className="stat-value">{stats.reviews_count}</span>
+                  <span className="stat-label">Отзывов</span>
+                </div>
+              </div>
+              <p className="profile-date">Дата регистрации: {stats.created_at ? new Date(stats.created_at).toLocaleDateString('ru-RU') : 'N/A'}</p>
+              <p className="profile-date">Последний вход: {stats.last_login ? new Date(stats.last_login).toLocaleString('ru-RU') : 'Никогда'}</p>
+            </div>
+          )}
+
+          {stats !== null && stats.reviews && stats.reviews.length > 0 && (
+            <div className="profile-reviews">
+              <h3>📝 Мои отзывы</h3>
+              <div className="reviews-list">
+                {stats.reviews.map(review => (
+                  <div key={review.id} className="review-item">
+                    <div className="review-header">
+                      <span className="review-course">{review.course_title}</span>
+                      <span className="review-rating">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
+                    </div>
+                    {review.text && <p className="review-text">{review.text}</p>}
+                    <span className="review-date">{review.created_at ? new Date(review.created_at).toLocaleDateString('ru-RU') : ''}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="password-section">

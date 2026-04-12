@@ -45,6 +45,7 @@ class UserResponse(BaseModel):
     is_superuser: bool = False
     avatar_id: Optional[int] = None
     created_at: datetime
+    last_login: Optional[datetime] = None
 
 
 class UpdateUserRole(BaseModel):
@@ -349,17 +350,6 @@ class QuizAttemptResponse(BaseModel):
     passed: bool
     started_at: datetime
     completed_at: Optional[datetime]
-
-
-class CertificateResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    enrollment_id: int
-    certificate_number: str
-    issued_at: datetime
-    course_title: str
-    user_name: str
 
 
 class ReorderItem(BaseModel):
