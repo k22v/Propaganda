@@ -17,10 +17,24 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
   const location = useLocation()
   const { theme, toggleTheme } = useTheme()
   const [showLogin, setShowLogin] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [showNotifications, setShowNotifications] = useState(false)
 
   useEffect(() => {
     setShowLogin(false)
   }, [location.pathname])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const notifs = [
+        { id: 1, type: 'review', message: 'Новый ответ на ваш отзыв', time: '2 часа назад', read: false },
+        { id: 2, type: 'course', message: 'Курс "Основы стоматологии" обновлён', time: '1 день назад', read: true },
+      ]
+      setNotifications(notifs)
+    }
+  }, [isAuthenticated])
+
+  const unreadCount = notifications.filter(n => !n.read).length
   const [userIsSuperuser, setUserIsSuperuser] = useState(false)
   const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
@@ -121,6 +135,38 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
             <button onClick={toggleTheme} className="theme-toggle-btn" title="Сменить тему">
               {theme === 'light' ? '🌙' : '☀️'}
             </button>
+            {isAuthenticated && (
+              <div className="notifications-wrapper">
+                <button 
+                  onClick={() => setShowNotifications(!showNotifications)} 
+                  className="notifications-btn"
+                  title="Уведомления"
+                >
+                  🔔
+                  {unreadCount > 0 && <span className="notifications-badge">{unreadCount}</span>}
+                </button>
+                {showNotifications && (
+                  <div className="notifications-dropdown">
+                    <div className="notifications-header">
+                      <h4>Уведомления</h4>
+                      {unreadCount > 0 && <button onClick={() => setNotifications(n => n.map(n => ({...n, read: true})))}>Отметить все</button>}
+                    </div>
+                    {notifications.length === 0 ? (
+                      <p className="no-notifications">Нет уведомлений</p>
+                    ) : (
+                      <div className="notifications-list">
+                        {notifications.map(n => (
+                          <div key={n.id} className={`notification-item ${!n.read ? 'unread' : ''}`}>
+                            <p>{n.message}</p>
+                            <span className="notification-time">{n.time}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -205,6 +251,89 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
           </div>
         </div>
       </footer>
+      
+      <style>{`
+        .notifications-wrapper {
+          position: relative;
+        }
+        .notifications-btn {
+          background: none;
+          border: none;
+          font-size: 1.25rem;
+          cursor: pointer;
+          padding: 0.25rem;
+          position: relative;
+        }
+        .notifications-badge {
+          position: absolute;
+          top: -4px;
+          right: -4px;
+          background: #ef4444;
+          color: white;
+          font-size: 0.65rem;
+          padding: 0.15rem 0.35rem;
+          border-radius: 10px;
+          font-weight: 600;
+        }
+        .notifications-dropdown {
+          position: absolute;
+          top: 100%;
+          right: 0;
+          width: 320px;
+          background: var(--color-surface);
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-md);
+          box-shadow: var(--shadow-lg);
+          z-index: 100;
+          margin-top: 0.5rem;
+        }
+        .notifications-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid var(--color-border);
+        }
+        .notifications-header h4 {
+          margin: 0;
+          font-size: 0.95rem;
+        }
+        .notifications-header button {
+          background: none;
+          border: none;
+          color: #1a6ce8;
+          font-size: 0.8rem;
+          cursor: pointer;
+        }
+        .no-notifications {
+          padding: 2rem;
+          text-align: center;
+          color: var(--color-text-secondary);
+        }
+        .notifications-list {
+          max-height: 300px;
+          overflow-y: auto;
+        }
+        .notification-item {
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid var(--color-border);
+          cursor: pointer;
+        }
+        .notification-item:hover {
+          background: var(--color-bg);
+        }
+        .notification-item.unread {
+          background: rgba(26, 108, 232, 0.05);
+        }
+        .notification-item p {
+          margin: 0 0 0.25rem;
+          font-size: 0.9rem;
+        }
+        .notification-time {
+          font-size: 0.75rem;
+          color: var(--color-text-secondary);
+        }
+      `}</style>
     </div>
   )
 }
