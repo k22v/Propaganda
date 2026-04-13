@@ -84,7 +84,7 @@ function App() {
 
   if (loading) return <Loader />
 
-  return (
+return (
     <BrowserRouter>
       <LoadingProvider>
         <Suspense fallback={<Loader />}>
@@ -110,8 +110,8 @@ function App() {
               isSuperuser ? <PracticeQuestions /> : <NotFound />
             } />
             <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
+          </Routes>
+        </Suspense>
       </Suspense>
         <ShortcutsHelp show={showHelp} onClose={() => setShowHelp(false)} />
       </LoadingProvider>
