@@ -4680,6 +4680,8 @@ h1, h2, h3, h4, h5, h6 {
 /* Quiz Results Admin Styles */
 .quiz-results-section {
   margin-top: 1rem;
+  width: 100%;
+  max-width: 100%;
 }
 
 .quiz-results-filters {
@@ -4708,6 +4710,14 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--color-surface);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
+  min-width: 100%;
+}
+
+.quiz-results-table table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
+  font-size: 0.85rem;
 }
 
 [data-theme="dark"] .quiz-results-table {
