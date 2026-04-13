@@ -112,7 +112,6 @@ return (
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
-      </Suspense>
         <ShortcutsHelp show={showHelp} onClose={() => setShowHelp(false)} />
       </LoadingProvider>
     </BrowserRouter>
