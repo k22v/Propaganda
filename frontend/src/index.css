@@ -39,6 +39,11 @@
   transition: background-color var(--theme-transition), color var(--theme-transition), border-color var(--theme-transition);
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 html {
   scroll-behavior: smooth;
   height: 100%;
@@ -1732,6 +1737,18 @@ h1, h2, h3, h4, h5, h6 {
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 500;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
   transition: all var(--transition-normal);
   position: relative;
   overflow: visible;
