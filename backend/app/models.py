@@ -282,6 +282,20 @@ class Review(Base):
     user: Mapped["User"] = relationship("User")
     course: Mapped["Course"] = relationship("Course", back_populates="reviews")
 
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    type: Mapped[str] = mapped_column(String(50))
+    message: Mapped[str] = mapped_column(Text)
+    link: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
+    is_read: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    user: Mapped["User"] = relationship("User")
+
     __table_args__ = (
         {'extend_existing': True}
     )

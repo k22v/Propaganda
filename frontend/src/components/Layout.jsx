@@ -1,6 +1,6 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
-import { authApi } from '../api'
+import { authApi, notificationsApi } from '../api'
 import { useTheme } from '../context/ThemeContext'
 import MapWidget from './MapWidget'
 
@@ -26,16 +26,36 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const notifs = [
-        { id: 1, type: 'review', message: 'Новый ответ на ваш отзыв', time: '2 часа назад', read: false, link: '/courses/4' },
-        { id: 2, type: 'course', message: 'Курс "Основы стоматологии" обновлён', time: '1 день назад', read: true, link: '/courses/2' },
-      ]
-      setNotifications(notifs)
+      notificationsApi.getAll()
+        .then(({ data }) => {
+          setNotifications(data.map(n => ({
+            ...n,
+            read: n.is_read,
+            time: formatTime(n.created_at)
+          })))
+        })
+        .catch(() => {})
     }
   }, [isAuthenticated])
 
+  const formatTime = (dateStr) => {
+    if (!dateStr) return ''
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now - date
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+    
+    if (diffMins < 60) return `${diffMins} мин. назад`
+    if (diffHours < 24) return `${diffHours} ч. назад`
+    if (diffDays < 7) return `${diffDays} дн. назад`
+    return date.toLocaleDateString('ru')
+  }
+
   const handleNotificationClick = (n) => {
     setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read: true } : item))
+    notificationsApi.markRead(n.id).catch(() => {})
     if (n.link) {
       navigate(n.link)
       setShowNotifications(false)
@@ -47,10 +67,6 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
   const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
   const [showAvatarMenu, setShowAvatarMenu] = useState(false)
-
-  useEffect(() => {
-    setShowLogin(false)
-  }, [location.pathname])
 
   useEffect(() => {
     if (isAuthenticated) {

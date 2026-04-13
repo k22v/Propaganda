@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from typing import List
 from app.database import get_db
-from app.models import User, Review, Course, Enrollment
+from app.models import User, Review, Course, Enrollment, Notification
 from app.schemas import ReviewCreate, ReviewResponse, ReviewUpdate
 from app.auth import get_current_active_user
 
@@ -193,8 +193,17 @@ async def respond_to_review(
     review.admin_response = response_data.get("response", "")
     review.admin_response_at = datetime.utcnow()
     
+    notification = Notification(
+        user_id=review.user_id,
+        type="review_response",
+        message=f"Администратор ответил на ваш отзыв: {response_data.get('response', '')[:100]}...",
+        link=f"/courses/{review.course_id}/reviews"
+    )
+    db.add(notification)
+    
     await db.commit()
     await db.refresh(review)
+    await db.refresh(notification)
     
     from app.schemas import UserResponse
     user_response = UserResponse.model_validate(review.user) if review.user else None

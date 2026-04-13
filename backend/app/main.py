@@ -11,6 +11,7 @@ from app.routers.admin import router as admin_router
 from app.routers.practice import router as practice_router
 from app.routers.comments import router as comments_router
 from app.routers.reviews import router as reviews_router
+from app.routers.notifications import router as notifications_router
 from app.limiter import limiter
 import os
 import logging
@@ -40,6 +41,7 @@ app.include_router(instruments_router, prefix="/api")
 app.include_router(practice_router, prefix="/api")
 app.include_router(comments_router, prefix="/api")
 app.include_router(reviews_router, prefix="/api")
+app.include_router(notifications_router, prefix="/api")
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)

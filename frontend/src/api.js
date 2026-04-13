@@ -164,5 +164,12 @@ export const reviewsApi = {
   getMy: () => api.get('/reviews/my'),
 }
 
+export const notificationsApi = {
+  getAll: () => api.get('/notifications/'),
+  getUnreadCount: () => api.get('/notifications/unread-count'),
+  markRead: (id) => api.post(`/notifications/mark-read/${id}`),
+  markAllRead: () => api.post('/notifications/mark-all-read'),
+}
+
 export { api }
 export default api
