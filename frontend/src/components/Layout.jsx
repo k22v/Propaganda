@@ -27,12 +27,20 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
   useEffect(() => {
     if (isAuthenticated) {
       const notifs = [
-        { id: 1, type: 'review', message: 'Новый ответ на ваш отзыв', time: '2 часа назад', read: false },
-        { id: 2, type: 'course', message: 'Курс "Основы стоматологии" обновлён', time: '1 день назад', read: true },
+        { id: 1, type: 'review', message: 'Новый ответ на ваш отзыв', time: '2 часа назад', read: false, link: '/courses/4' },
+        { id: 2, type: 'course', message: 'Курс "Основы стоматологии" обновлён', time: '1 день назад', read: true, link: '/courses/2' },
       ]
       setNotifications(notifs)
     }
   }, [isAuthenticated])
+
+  const handleNotificationClick = (n) => {
+    setNotifications(prev => prev.map(item => item.id === n.id ? { ...item, read: true } : item))
+    if (n.link) {
+      navigate(n.link)
+      setShowNotifications(false)
+    }
+  }
 
   const unreadCount = notifications.filter(n => !n.read).length
   const [userIsSuperuser, setUserIsSuperuser] = useState(false)
@@ -156,7 +164,11 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
                     ) : (
                       <div className="notifications-list">
                         {notifications.map(n => (
-                          <div key={n.id} className={`notification-item ${!n.read ? 'unread' : ''}`}>
+                          <div 
+                            key={n.id} 
+                            className={`notification-item ${!n.read ? 'unread' : ''}`}
+                            onClick={() => handleNotificationClick(n)}
+                          >
                             <p>{n.message}</p>
                             <span className="notification-time">{n.time}</span>
                           </div>
