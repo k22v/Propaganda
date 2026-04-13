@@ -84,6 +84,10 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
           </Link>
           <div className="nav-links">
             <Link to="/courses">Все курсы</Link>
+            <Link to="/glossary">Глоссарий</Link>
+            <button onClick={() => { navigate('/courses'); setTimeout(() => document.querySelector('.search-box input')?.focus(), 100) }} title="Поиск курсов">
+              🔍
+            </button>
             {isAuthenticated ? (
               <>
                 <Link to="/my-courses">Мои курсы</Link>
