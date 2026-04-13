@@ -20,6 +20,7 @@ function Courses() {
   const [hasMore, setHasMore] = useState(true)
   const [currentUser, setCurrentUser] = useState(null)
   const [specialization, setSpecialization] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
   const loaderRef = useRef(null)
   const filterRef = useRef(null)
   const { showToast, toast, closeToast } = useToast()
@@ -43,10 +44,10 @@ function Courses() {
       .catch(() => setCurrentUser(null))
   }, [])
 
-  const loadCourses = useCallback(async (pageNum, spec) => {
+  const loadCourses = useCallback(async (pageNum, spec, search = null) => {
     setLoading(true)
     try {
-      const { data } = await coursesApi.getAll(pageNum * PAGE_SIZE, PAGE_SIZE, spec || null)
+      const { data } = await coursesApi.getAll(pageNum * PAGE_SIZE, PAGE_SIZE, spec || null, search)
       const published = data.filter(c => c.is_published)
       if (pageNum === 0) {
         setCourses(published)
@@ -112,6 +113,27 @@ function Courses() {
         <h1>Доступные курсы</h1>
       </div>
       
+      <div className="search-box">
+        <input
+          type="text"
+          placeholder="Поиск курсов..."
+          onChange={(e) => {
+            const q = e.target.value
+            setSearchQuery(q)
+            if (q.length >= 2 || q.length === 0) {
+              setPage(0)
+              loadCourses(0, specialization, q)
+            }
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              setPage(0)
+              loadCourses(0, specialization, e.target.value)
+            }
+          }}
+        />
+      </div>
+      
       <div className="courses-filter" ref={filterRef}>
         {SPECIALIZATIONS.map((spec, index) => (
           <button
@@ -157,6 +179,26 @@ function Courses() {
         </>
       )}
       <ToastContainer toast={toast} onClose={closeToast} />
+      
+      <style>{`
+        .search-box {
+          margin-bottom: 1.5rem;
+        }
+        .search-box input {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          border: 1px solid var(--color-border);
+          border-radius: var(--radius-md);
+          font-size: 1rem;
+          background: var(--color-surface);
+          color: var(--color-text);
+        }
+        .search-box input:focus {
+          outline: none;
+          border-color: #1a6ce8;
+          box-shadow: 0 0 0 2px rgba(26, 108, 232, 0.1);
+        }
+      `}</style>
     </div>
   )
 }

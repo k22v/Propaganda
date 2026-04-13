@@ -58,9 +58,10 @@ export const authApi = {
 }
 
 export const coursesApi = {
-  getAll: (skip = 0, limit = 12, specialization = null) => {
+  getAll: (skip = 0, limit = 12, specialization = null, search = null) => {
     let url = `/courses/?skip=${skip}&limit=${limit}`
     if (specialization) url += `&specialization=${specialization}`
+    if (search) url += `&search=${encodeURIComponent(search)}`
     return api.get(url)
   },
   getMy: () => api.get('/courses/my'),

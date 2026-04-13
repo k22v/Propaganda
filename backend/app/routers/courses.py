@@ -30,10 +30,14 @@ async def list_courses(
     skip: int = 0,
     limit: int = DEFAULT_PAGE_SIZE,
     specialization: str = None,
+    search: str = None,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_active_user)
 ):
     query = select(Course).where(Course.is_published == True)
+    
+    if search:
+        query = query.where(Course.title.ilike(f"%{search}%"))
     
     if current_user.is_superuser:
         pass
