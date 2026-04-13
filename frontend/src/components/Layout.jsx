@@ -15,6 +15,7 @@ const ANIMALS = [
 function Layout({ isAuthenticated, onLogout, onLogin }) {
   const navigate = useNavigate()
   const location = useLocation()
+  const { theme, toggleTheme } = useTheme()
   const [showLogin, setShowLogin] = useState(false)
 
   useEffect(() => {
