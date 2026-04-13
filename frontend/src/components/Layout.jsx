@@ -1,4 +1,4 @@
-import { Link, Outlet, useNavigate } from 'react-router-dom'
+import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { authApi } from '../api'
 import { useTheme } from '../context/ThemeContext'
@@ -14,14 +14,20 @@ const ANIMALS = [
 
 function Layout({ isAuthenticated, onLogout, onLogin }) {
   const navigate = useNavigate()
-  const { theme, toggleTheme } = useTheme()
-  const [loginData, setLoginData] = useState({ username: '', password: '', remember_me: false })
-  const [loginError, setLoginError] = useState('')
+  const location = useLocation()
   const [showLogin, setShowLogin] = useState(false)
+
+  useEffect(() => {
+    setShowLogin(false)
+  }, [location.pathname])
   const [userIsSuperuser, setUserIsSuperuser] = useState(false)
   const [userIsAdmin, setUserIsAdmin] = useState(false)
   const [currentUser, setCurrentUser] = useState(null)
   const [showAvatarMenu, setShowAvatarMenu] = useState(false)
+
+  useEffect(() => {
+    setShowLogin(false)
+  }, [location.pathname])
 
   useEffect(() => {
     if (isAuthenticated) {
