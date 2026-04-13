@@ -1708,6 +1708,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .auth-card button:hover {
   background: #1a1a76;
+  transform: none;
+  box-shadow: none;
 }
 
 .auth-card p {
