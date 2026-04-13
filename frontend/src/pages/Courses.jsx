@@ -146,11 +146,16 @@ function Courses() {
         ))}
       </div>
       
-      {courses.length === 0 && !loading ? (
+      {loading && courses.length === 0 ? (
+        <div className="loading-state">
+          <div className="loader-spinner"></div>
+          <p>Загрузка курсов...</p>
+        </div>
+      ) : courses.length === 0 && !loading ? (
         <div className="empty-state">
           <div className="empty-state-icon">📚</div>
-          <h3>Курсов пока нет</h3>
-          <p>Скоро здесь появятся интересные курсы</p>
+          <h3>Курсов не найдено</h3>
+          <p>{searchQuery ? `По запросу "${searchQuery}" ничего не найдено` : 'Курсов пока нет'}</p>
         </div>
       ) : (
         <>
@@ -197,6 +202,22 @@ function Courses() {
           outline: none;
           border-color: #1a6ce8;
           box-shadow: 0 0 0 2px rgba(26, 108, 232, 0.1);
+        }
+        .loading-state {
+          text-align: center;
+          padding: 3rem;
+        }
+        .loading-state .loader-spinner {
+          width: 40px;
+          height: 40px;
+          border: 3px solid var(--color-border);
+          border-top-color: #1a6ce8;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
