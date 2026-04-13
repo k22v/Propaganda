@@ -1,5 +1,3 @@
 @echo off
-cd /d C:\coding\lms-platform\backend
-call venv\Scripts\activate.bat
-pip install -r requirements.txt
-python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+cd /d C:\propaganda\backend
+call C:\Users\user\AppData\Local\Programs\Python\Python312\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
