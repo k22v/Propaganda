@@ -1,9 +1,12 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from app.database import init_db
+from fastapi import Depends
+from app.database import init_db, get_db
 from app.routers import auth, courses, quizzes
 from app.routers.templates import router as templates_router
 from app.routers.instruments import router as instruments_router
@@ -69,5 +72,25 @@ async def root():
 
 
 @app.get("/health")
-async def health_check():
-    return {"status": "healthy"}
+async def health_check(db: AsyncSession = Depends(get_db)):
+    try:
+        await db.execute(select(1))
+        db_status = "healthy"
+    except Exception as e:
+        db_status = f"unhealthy: {str(e)}"
+    
+    redis_status = "not_configured"
+    try:
+        from app.services.cache_service import get_redis_client
+        redis = get_redis_client()
+        if redis:
+            await redis.ping()
+            redis_status = "healthy"
+    except Exception:
+        pass
+    
+    return {
+        "status": "healthy" if db_status == "healthy" else "degraded",
+        "database": db_status,
+        "redis": redis_status
+    }
