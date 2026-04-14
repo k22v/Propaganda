@@ -1,0 +1,36 @@
+# Dependencies
+node_modules
+venv
+__pycache__
+*.pyc
+.pytest_cache
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Build artifacts
+dist
+build
+*.egg-info
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+*.log
+*.tmp
+temp*
+npm.zip
+
+# Documentation
+README.md
+LICENSE
+docs

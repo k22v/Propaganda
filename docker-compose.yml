@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:16-alpine
+    image: postgres:14-alpine
     environment:
       POSTGRES_USER: lms_user
       POSTGRES_PASSWORD: lms_password
@@ -16,6 +16,15 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
 
   backend:
     build:
@@ -23,23 +32,30 @@ services:
       dockerfile: Dockerfile
     environment:
       DATABASE_URL: postgresql+asyncpg://lms_user:lms_password@db:5432/lms_db
+      REDIS_URL: redis://redis:6379
+      USE_CACHE: "true"
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
     ports:
       - "8000:8000"
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
     volumes:
       - ./backend/uploads:/app/uploads
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3000:80"
     depends_on:
       - backend
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  redis_data:
