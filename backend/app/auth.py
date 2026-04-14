@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, List
 from jose import JWTError, jwt
 import bcrypt
 from fastapi import Depends, HTTPException, status, Request
@@ -75,3 +75,23 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 
 def can_edit_course(user: User, course_author_id: int) -> bool:
     return user.is_superuser or user.id == course_author_id
+
+
+def require_roles(allowed_roles: List[str]):
+    async def role_checker(user: User = Depends(get_current_active_user)) -> User:
+        if not user.is_superuser and user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. Required role: {allowed_roles}"
+            )
+        return user
+    return role_checker
+
+
+def require_superuser(user: User = Depends(get_current_active_user)) -> User:
+    if not user.is_superuser:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Superuser access required"
+        )
+    return user
