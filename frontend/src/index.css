@@ -442,6 +442,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   gap: 1.5rem;
   align-items: center;
+  min-height: 36px;
 }
 
 .nav-links button {
@@ -452,6 +453,9 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0.25rem;
   border-radius: var(--radius-sm);
   transition: background 0.15s;
+  display: flex;
+  align-items: center;
+  min-height: 36px;
 }
 
 .nav-links button:hover {
@@ -482,6 +486,9 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 500;
   font-size: 0.9rem;
   transition: color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
 }
 
 .nav-links a:hover {
