@@ -758,6 +758,7 @@ async def reorder_contents(
 
 
 @router.post("/{course_id}/enroll")
+@limiter.limit("5/minute")
 async def enroll_course(
     course_id: int,
     current_user: User = Depends(get_current_active_user),
@@ -857,6 +858,7 @@ async def get_content(
 
 
 @router.post("/upload")
+@limiter.limit("10/minute")
 async def upload_file(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_active_user)
