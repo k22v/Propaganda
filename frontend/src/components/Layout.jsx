@@ -17,6 +17,8 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
   const location = useLocation()
   const { theme, toggleTheme } = useTheme()
   const [showLogin, setShowLogin] = useState(false)
+  const [loginData, setLoginData] = useState({ username: '', password: '', remember_me: false })
+  const [loginError, setLoginError] = useState('')
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
 
