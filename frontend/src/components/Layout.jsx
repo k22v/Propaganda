@@ -21,8 +21,6 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
   const [loginError, setLoginError] = useState('')
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
-  const [loginData, setLoginData] = useState({ username: '', password: '', remember_me: false })
-  const [loginError, setLoginError] = useState('')
 
   useEffect(() => {
     setShowLogin(false)
