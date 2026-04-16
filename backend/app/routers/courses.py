@@ -151,7 +151,7 @@ async def create_course(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if not current_user.is_superuser and current_user.role != "admin":
+    if not current_user.is_superuser and current_user.role not in ("admin", "teacher"):
         raise HTTPException(status_code=403, detail="Not enough permissions")
 
     try:
@@ -257,24 +257,20 @@ async def get_course(
 
                 quiz_data = None
                 try:
-                    print(f"Chapter {chapter.id}: title={chapter.title}")
-                    quiz_result = await db.execute(
-                        select(Quiz).where(Quiz.lesson_id == chapter.id)
-                    )
-                    quiz = quiz_result.scalar_one_or_none()
-                    print(f"  Quiz found: {quiz}")
-                    if quiz:
-                        quiz_data = {
-                            "id": quiz.id,
-                            "title": quiz.title,
-                            "description": quiz.description,
-                            "passing_score": quiz.passing_score
-                        }
-                        print(f"  Quiz data: {quiz_data}")
+                    for content in chapter.contents:
+                        quiz_result = await db.execute(
+                            select(Quiz).where(Quiz.lesson_id == content.id)
+                        )
+                        quiz = quiz_result.scalar_one_or_none()
+                        if quiz:
+                            quiz_data = {
+                                "id": quiz.id,
+                                "title": quiz.title,
+                                "description": quiz.description,
+                                "passing_score": quiz.passing_score
+                            }
+                            break
                 except Exception as e:
-                    print(f"Quiz error: {e}")
-                    import traceback
-                    traceback.print_exc()
                     quiz_data = None
                 
                 chapters_with_contents.append({

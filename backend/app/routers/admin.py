@@ -12,7 +12,6 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 
 def require_admin(user: User = Depends(get_current_active_user)):
-    print(f"DEBUG: require_admin called, user: {user.id}, is_superuser: {user.is_superuser}, role: {user.role}")
     if not user.is_superuser and user.role != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
@@ -117,7 +116,6 @@ async def update_user_role(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin)
 ):
-    print(f"DEBUG: update_user_role called for user {user_id}, new role: '{data.role}'")
     valid_roles = ["student", "teacher", "admin"]
     if data.role not in valid_roles:
         raise HTTPException(status_code=400, detail=f"Invalid role. Must be one of: {valid_roles}")
@@ -127,11 +125,9 @@ async def update_user_role(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    print(f"DEBUG: Current user role in DB: {user.role}")
     user.role = data.role
     await db.commit()
     await db.refresh(user)
-    print(f"DEBUG: User role after refresh: {user.role}")
     return user
 
 
@@ -142,7 +138,6 @@ async def update_user_specialization(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin)
 ):
-    print(f"DEBUG: update_user_specialization called for user {user_id} with specialization '{data.specialization}'")
     valid_specializations = ["dentist", "assistant", "technician", "clinic_admin"]
     specialization = data.specialization
     if specialization and specialization not in valid_specializations:
