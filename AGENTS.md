@@ -215,6 +215,10 @@ Sections → chapters → contents → progress - классический N+1. 
 16. **CreateQuiz.jsx** - обновлён с Card, Badge, Button, lucide-react иконками
 17. **Glossary.jsx** - добавлены импорты для UI компонентов
 18. **InstrumentDetail.jsx** - обновлён с Card, Badge, Button, lucide-react иконками
+19. **PracticeQuestions.jsx** - обновлён с Card, Badge, Button, lucide-react иконками
+20. **Login.jsx** - переработан с gradient background и lucide-react
+21. **Register.jsx** - переработан с lucide-react иконками
+22. **NotFound.jsx** - обновлён с HeartCrack иконкой, современный дизайн
 
 ---
 
