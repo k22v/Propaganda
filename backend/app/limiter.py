@@ -1,4 +1,13 @@
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+# Simple pass-through limiter for development
+from functools import wraps
 
-limiter = Limiter(key_func=get_remote_address)
+class SimpleLimiter:
+    def __init__(self, key_func=None):
+        pass
+    
+    def limit(self, *args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+
+limiter = SimpleLimiter()
