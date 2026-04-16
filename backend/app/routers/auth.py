@@ -160,6 +160,7 @@ async def logout(response: Response):
 @router.post("/change-password")
 @limiter.limit("5/minute")
 async def change_password(
+    request: Request,
     data: PasswordChange,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)

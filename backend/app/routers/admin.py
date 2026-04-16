@@ -60,6 +60,7 @@ async def get_user(
 @limiter.limit("10/minute")
 async def delete_user(
     user_id: int,
+    request: Request,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin)
 ):

@@ -770,6 +770,7 @@ async def reorder_contents(
 @limiter.limit("5/minute")
 async def enroll_course(
     course_id: int,
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -870,6 +871,7 @@ async def get_content(
 @limiter.limit("10/minute")
 @require_permission(Permission.CAN_UPLOAD_MEDIA)
 async def upload_file(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_active_user)
 ):
