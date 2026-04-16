@@ -205,7 +205,6 @@ async def get_attempts_history(
 @limiter.limit("10/minute")
 async def submit_quiz_attempt(
     quiz_id: int,
-    request: Request,
     attempt_data: QuizAttemptCreate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)

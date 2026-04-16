@@ -59,7 +59,6 @@ async def get_user(
 @router.delete("/users/{user_id}")
 async def delete_user(
     user_id: int,
-    request: Request,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin)
 ):
