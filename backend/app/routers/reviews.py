@@ -68,7 +68,7 @@ async def get_course_review_stats(
             func.avg(Review.rating).label("average")
         ).where(Review.course_id == course_id)
     )
-        stats = result.one()
+    stats = result.one()
         
         return {
             "count": stats.count or 0,
