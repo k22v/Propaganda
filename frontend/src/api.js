@@ -139,7 +139,17 @@ export const practiceApi = {
 
 export const adminApi = {
   getStats: () => api.get('/admin/stats'),
-  getUsers: () => api.get('/admin/users'),
+  getUsers: (params = {}) => {
+    const searchParams = new URLSearchParams()
+    if (params.search) searchParams.append('search', params.search)
+    if (params.role) searchParams.append('role', params.role)
+    if (params.specialization) searchParams.append('specialization', params.specialization)
+    if (params.is_active !== undefined) searchParams.append('is_active', params.is_active)
+    if (params.skip) searchParams.append('skip', params.skip)
+    if (params.limit) searchParams.append('limit', params.limit)
+    const query = searchParams.toString()
+    return api.get(`/admin/users${query ? '?' + query : ''}`)
+  },
   getUser: (id) => api.get(`/admin/users/${id}`),
   updateUserRole: (id, role) => api.patch(`/admin/users/${id}/role`, { role }),
   updateUserSpecialization: (id, specialization) => api.patch(`/admin/users/${id}/specialization`, { specialization }),

@@ -23,45 +23,59 @@ export default function AdminDashboard() {
   const [quizFilter, setQuizFilter] = useState({ user: '', course: '' })
   const [selectedResult, setSelectedResult] = useState(null)
   const [filters, setFilters] = useState({ search: '', role: '', specialization: '', status: '' })
-  const [pagination, setPagination] = useState({ page: 1, total_pages: 1 })
+  const [pagination, setPagination] = useState({ page: 1, total: 0 })
   const initialized = useRef(false)
 
-  const loadData = async () => {
+  const loadStats = async () => {
     try {
-      const [statsRes, usersRes, quizRes] = await Promise.all([
-        adminApi.getStats(),
-        adminApi.getUsers(),
-        adminApi.getQuizResults()
-      ])
+      const statsRes = await adminApi.getStats()
       setStats(statsRes.data)
-      setUsers(usersRes.data)
-      setQuizResults(quizRes.data)
     } catch (err) {
-      console.error('Admin load error:', err)
+      console.error('Stats load error:', err)
+    }
+  }
+
+  const loadUsers = async () => {
+    setLoading(true)
+    try {
+      const params = {}
+      if (filters.search) params.search = filters.search
+      if (filters.role) params.role = filters.role
+      if (filters.specialization) params.specialization = filters.specialization
+      if (filters.status !== '') params.is_active = filters.status === 'true'
+      
+      const usersRes = await adminApi.getUsers(params)
+      setUsers(usersRes.data.users || [])
+      setPagination(prev => ({ ...prev, total: usersRes.data.total || 0 }))
+    } catch (err) {
+      console.error('Users load error:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  const loadQuizResults = async () => {
+    try {
+      const quizRes = await adminApi.getQuizResults()
+      setQuizResults(quizRes.data || [])
+    } catch (err) {
+      console.error('Quiz results load error:', err)
+    }
+  }
+
+  const loadData = async () => {
+    await Promise.all([loadStats(), loadUsers(), loadQuizResults()])
   }
 
   useEffect(() => {
     loadData()
   }, [])
 
-  const filteredUsers = useMemo(() => {
-    return users.filter(user => {
-      if (filters.search && !user.username.toLowerCase().includes(filters.search.toLowerCase()) &&
-          !user.email.toLowerCase().includes(filters.search.toLowerCase())) {
-        return false
-      }
-      if (filters.role && user.role !== filters.role) return false
-      if (filters.specialization && user.specialization !== filters.specialization) return false
-      if (filters.status !== '') {
-        const isActive = filters.status === 'true'
-        if (user.is_active !== isActive) return false
-      }
-      return true
-    })
-  }, [users, filters])
+  useEffect(() => {
+    if (activeTab === 'users') {
+      loadUsers()
+    }
+  }, [filters, activeTab])
 
   const filteredQuizResults = useMemo(() => {
     return quizResults.filter(r => 
@@ -101,7 +115,7 @@ export default function AdminDashboard() {
       { key: 'is_active', label: 'Active' },
       { key: 'created_at', label: 'Created' }
     ]
-    exportToCSV(filteredUsers, 'users', columns)
+    exportToCSV(users, 'users', columns)
   }
 
   const handleExportQuizResults = () => {
@@ -120,7 +134,7 @@ export default function AdminDashboard() {
   const updateRole = async (userId, role) => {
     try {
       await adminApi.updateUserRole(userId, role)
-      loadData()
+      loadUsers()
     } catch (err) {
       console.error('Role update error:', err)
       alert('Ошибка при обновлении роли')
@@ -130,7 +144,7 @@ export default function AdminDashboard() {
   const updateSpecialization = async (userId, specialization) => {
     try {
       await adminApi.updateUserSpecialization(userId, specialization || null)
-      loadData()
+      loadUsers()
     } catch (err) {
       console.error('Specialization update error:', err)
       alert('Ошибка при обновлении специализации')
@@ -140,7 +154,7 @@ export default function AdminDashboard() {
   const toggleBlock = async (userId) => {
     try {
       await adminApi.toggleUserBlock(userId)
-      loadData()
+      loadUsers()
     } catch (err) {
       console.error('Block toggle error:', err)
     }
@@ -150,7 +164,7 @@ export default function AdminDashboard() {
     if (!window.confirm('Вы уверены, что хотите удалить пользователя?')) return
     try {
       await adminApi.deleteUser(userId)
-      loadData()
+      loadUsers()
     } catch (err) {
       console.error('Delete error:', err)
     }

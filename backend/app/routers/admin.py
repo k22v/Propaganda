@@ -22,25 +22,62 @@ def require_admin(user: User = Depends(get_current_active_user)):
 async def get_users(
     skip: int = 0,
     limit: int = 100,
+    search: str = None,
+    role: str = None,
+    specialization: str = None,
+    is_active: bool = None,
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin)
 ):
-    result = await db.execute(select(User).offset(skip).limit(limit))
+    query = select(User)
+    
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.where(
+            (User.username.ilike(search_pattern)) |
+            (User.email.ilike(search_pattern)) |
+            (User.full_name.ilike(search_pattern))
+        )
+    
+    if role:
+        query = query.where(User.role == role)
+    
+    if specialization:
+        query = query.where(User.specialization == specialization)
+    
+    if is_active is not None:
+        query = query.where(User.is_active == is_active)
+    
+    query = query.order_by(User.created_at.desc()).offset(skip).limit(limit)
+    
+    result = await db.execute(query)
     users = result.scalars().all()
-    return [
-        {
-            "id": u.id,
-            "email": u.email,
-            "username": u.username,
-            "full_name": u.full_name,
-            "specialization": u.specialization,
-            "role": u.role,
-            "is_active": u.is_active,
-            "is_superuser": u.is_superuser,
-            "created_at": u.created_at.isoformat() if u.created_at else None
-        }
-        for u in users
-    ]
+    
+    total_result = await db.execute(
+        select(func.count(User.id))
+    )
+    total = total_result.scalar()
+    
+    return {
+        "users": [
+            {
+                "id": u.id,
+                "email": u.email,
+                "username": u.username,
+                "full_name": u.full_name,
+                "specialization": u.specialization,
+                "role": u.role,
+                "is_active": u.is_active,
+                "is_superuser": u.is_superuser,
+                "created_at": u.created_at.isoformat() if u.created_at else None,
+                "last_login": u.last_login.isoformat() if u.last_login else None
+            }
+            for u in users
+        ],
+        "total": total,
+        "skip": skip,
+        "limit": limit
+    }
 
 
 @router.get("/users/{user_id}", response_model=UserResponse)
