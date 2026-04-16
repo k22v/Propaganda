@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import { Home, BookOpen, HeartCrack } from 'lucide-react'
+import { Button } from '../components/ui/index.jsx'
 
 function NotFound() {
   return (
@@ -17,16 +19,8 @@ function NotFound() {
                 <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
                 <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
               </linearGradient>
-              <linearGradient id="toothShadow" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#64748b" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#64748b" stopOpacity="0" />
-              </linearGradient>
               <filter id="dropShadow" x="-50%" y="-50%" width="200%" height="200%">
                 <feDropShadow dx="3" dy="8" stdDeviation="4" floodColor="#1e293b" floodOpacity="0.3"/>
-              </filter>
-              <filter id="innerGlow">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
-                <feComposite in="SourceGraphic" in2="blur" operator="over"/>
               </filter>
             </defs>
             
@@ -60,7 +54,7 @@ function NotFound() {
           </svg>
           
           <div className="broken-piece">
-            <span className="broken-icon">💔</span>
+            <HeartCrack size={32} style={{ color: '#ef4444' }} />
           </div>
         </div>
         
@@ -69,12 +63,37 @@ function NotFound() {
         <p>Похоже, этот зуб выпал из нашей базы данных</p>
         
         <div className="not-found-actions">
-          <Link to="/" className="btn btn-primary">🏠 На главную</Link>
-          <Link to="/courses" className="btn btn-secondary">📚 К курсам</Link>
+          <Button as={Link} to="/">
+            <Home size={16} /> На главную
+          </Button>
+          <Button as={Link} to="/courses" variant="secondary">
+            <BookOpen size={16} /> К курсам
+          </Button>
         </div>
       </div>
 
       <style>{`
+        .not-found-page {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem;
+          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+        
+        .not-found-content {
+          text-align: center;
+          color: white;
+          max-width: 500px;
+        }
+        
+        .not-found-illustration {
+          position: relative;
+          display: inline-block;
+          margin-bottom: 2rem;
+        }
+        
         .tooth-3d-svg {
           width: 180px;
           height: 180px;
@@ -88,15 +107,14 @@ function NotFound() {
         
         .broken-piece {
           position: absolute;
-          top: 50%;
-          right: 20%;
-          font-size: 2rem;
+          top: 30%;
+          right: 0;
           animation: pulse 1.5s ease-in-out infinite;
         }
         
         @keyframes pulse {
           0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.1); opacity: 0.7; }
+          50% { transform: scale(1.2); opacity: 0.7; }
         }
 
         .crack path {
@@ -106,6 +124,33 @@ function NotFound() {
         @keyframes crackAppear {
           0%, 100% { opacity: 0.3; }
           50% { opacity: 0.8; }
+        }
+        
+        .not-found-content h1 {
+          font-size: 6rem;
+          font-weight: 700;
+          margin: 0;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        
+        .not-found-content h2 {
+          font-size: 1.5rem;
+          margin: 0.5rem 0 1rem;
+        }
+        
+        .not-found-content p {
+          color: rgba(255, 255, 255, 0.7);
+          margin-bottom: 2rem;
+        }
+        
+        .not-found-actions {
+          display: flex;
+          gap: 1rem;
+          justify-content: center;
+          flex-wrap: wrap;
         }
       `}</style>
     </div>

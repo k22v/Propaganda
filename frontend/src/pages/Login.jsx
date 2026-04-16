@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { Lock, User } from 'lucide-react'
 import { authApi } from '../api'
+import { Card, Button } from '../components/ui/index.jsx'
 
 function Login() {
   const [form, setForm] = useState({ username: '', password: '', remember_me: false })
@@ -21,59 +23,121 @@ function Login() {
   }
 
   return (
-    <div className="auth-page">
-      <div className="auth-card">
-        <div className="auth-card-header">
-          <div className="auth-icon">🔐</div>
-          <h1>Вход</h1>
-          <p className="subtitle">Войдите в свой аккаунт</p>
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      padding: '2rem',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    }}>
+      <Card padding="lg" style={{ width: '100%', maxWidth: '420px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div style={{ 
+            width: '64px', 
+            height: '64px', 
+            borderRadius: '50%', 
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 1rem'
+          }}>
+            <Lock size={28} color="white" />
+          </div>
+          <h1 style={{ margin: '0 0 0.5rem', fontSize: '1.5rem' }}>Вход</h1>
+          <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>Войдите в свой аккаунт</p>
         </div>
         
-        {error && <div className="alert alert-danger">{error}</div>}
+        {error && (
+          <div style={{ 
+            padding: '0.75rem 1rem', 
+            background: 'rgba(239, 68, 68, 0.1)', 
+            color: '#ef4444', 
+            borderRadius: '8px', 
+            marginBottom: '1rem',
+            fontSize: '0.875rem',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
         
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="username">Имя пользователя</label>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+              Имя пользователя
+            </label>
             <input
-              id="username"
               type="text"
               placeholder="Введите логин"
               value={form.username}
               onChange={(e) => setForm({ ...form, username: e.target.value })}
               required
+              style={{ 
+                width: '100%', 
+                padding: '0.75rem 1rem', 
+                border: '1px solid var(--color-border)', 
+                borderRadius: '10px', 
+                fontSize: '0.95rem',
+                background: 'var(--color-background)'
+              }}
             />
           </div>
           
-          <div className="form-group">
-            <label htmlFor="password">Пароль</label>
+          <div style={{ marginBottom: '1rem' }}>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.875rem', fontWeight: 500 }}>
+              Пароль
+            </label>
             <input
-              id="password"
               type="password"
               placeholder="Введите пароль"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
               required
+              style={{ 
+                width: '100%', 
+                padding: '0.75rem 1rem', 
+                border: '1px solid var(--color-border)', 
+                borderRadius: '10px', 
+                fontSize: '0.95rem',
+                background: 'var(--color-background)'
+              }}
             />
           </div>
           
-          <label className="checkbox-label">
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.5rem', 
+            marginBottom: '1.5rem', 
+            cursor: 'pointer',
+            fontSize: '0.875rem',
+            color: 'var(--color-text-secondary)'
+          }}>
             <input
               type="checkbox"
               checked={form.remember_me}
               onChange={(e) => setForm({ ...form, remember_me: e.target.checked })}
+              style={{ width: '18px', height: '18px', cursor: 'pointer' }}
             />
             Запомнить меня
           </label>
           
-          <button type="submit" className="btn btn-primary btn-lg w-full" disabled={loading}>
+          <Button type="submit" size="lg" className="w-full" disabled={loading}>
             {loading ? 'Вход...' : 'Войти'}
-          </button>
+          </Button>
         </form>
         
-        <p className="auth-footer">
-          Нет аккаунта? <Link to="/register">Зарегистрироваться</Link>
+        <p style={{ 
+          textAlign: 'center', 
+          marginTop: '1.5rem', 
+          fontSize: '0.875rem', 
+          color: 'var(--color-text-secondary)' 
+        }}>
+          Нет аккаунта? <Link to="/register" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>Зарегистрироваться</Link>
         </p>
-      </div>
+      </Card>
     </div>
   )
 }
