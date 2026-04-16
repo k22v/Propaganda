@@ -157,10 +157,10 @@ Sections → chapters → contents → progress - классический N+1. 
 8. ✅ Закрыть комментарии
 
 ### Архитектура (MEDIUM)
-1. ✅ Service layer (частично - users, courses, progress, auth)
+1. ✅ Service layer (users, courses, progress, auth)
 2. ✅ Permission policies
-3. Domain decomposition
-4. Domain model (dental)
+3. ✅ Domain decomposition (dental)
+4. ✅ Domain model (dental)
 
 ### Производительность (LOW)
 1. Query optimization
