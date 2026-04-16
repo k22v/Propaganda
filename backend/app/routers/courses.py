@@ -145,7 +145,6 @@ async def get_my_courses(
 
 
 @router.post("/")
-@require_permission(Permission.CAN_CREATE_COURSE)
 async def create_course(
     course_data: CourseCreate,
     current_user: User = Depends(get_current_active_user),
@@ -869,7 +868,6 @@ async def get_content(
 
 @router.post("/upload")
 @limiter.limit("10/minute")
-@require_permission(Permission.CAN_UPLOAD_MEDIA)
 async def upload_file(
     request: Request,
     file: UploadFile = File(...),
