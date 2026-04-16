@@ -57,7 +57,6 @@ async def get_user(
 
 
 @router.delete("/users/{user_id}")
-@limiter.limit("10/minute")
 async def delete_user(
     user_id: int,
     request: Request,
