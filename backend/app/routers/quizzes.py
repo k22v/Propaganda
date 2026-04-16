@@ -252,13 +252,20 @@ async def submit_quiz_attempt(
         select(Answer).where(Answer.is_correct == True)
     )
     correct_answers = {a.question_id: a.id for a in result.scalars().all()}
-
+    
+    # FIX: Get total questions from quiz, not from submitted answers
+    # This prevents cheating by sending fewer answers
+    total_questions = len(quiz.questions) if quiz.questions else 0
+    
+    # Only count questions that were actually answered
+    answered_count = len(attempt_data.answers)
+    
     score = 0
-    total_questions = len(attempt_data.answers)
     for question_id, answer_id in attempt_data.answers.items():
         if correct_answers.get(question_id) == answer_id:
             score += 1
 
+    # Calculate percentage based on TOTAL questions in quiz (not submitted answers)
     final_score = int((score / total_questions) * 100) if total_questions > 0 else 0
     passed = final_score >= quiz.passing_score
 

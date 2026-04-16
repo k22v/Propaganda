@@ -15,7 +15,8 @@ from app.schemas import (
     LessonContentCreate, LessonContentUpdate, LessonContentResponse,
     ReorderRequest
 )
-from app.auth import get_current_active_user, can_edit_course
+from app.auth import get_current_active_user
+from app.policies import can_edit_course, require_permission, Permission
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
@@ -137,6 +138,7 @@ async def get_my_courses(
 
 
 @router.post("/")
+@require_permission(Permission.CAN_CREATE_COURSE)
 async def create_course(
     course_data: CourseCreate,
     current_user: User = Depends(get_current_active_user),
