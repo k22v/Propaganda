@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
@@ -13,6 +13,7 @@ from app.schemas import (
     QuizAttemptCreate, QuizAttemptResponse
 )
 from app.auth import get_current_active_user
+from app.limiter import limiter
 
 router = APIRouter(prefix="/quizzes", tags=["quizzes"])
 
