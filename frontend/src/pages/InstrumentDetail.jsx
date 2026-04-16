@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import { ChevronLeft, Edit, Save, X, Thermometer, Clock, Gauge } from 'lucide-react'
 import { instrumentsApi, authApi } from '../api'
 import { useToast, ToastContainer } from '../components/Toast'
+import { Card, Badge, Button } from '../components/ui/index.jsx'
 
 function InstrumentDetail() {
   const { id } = useParams()
@@ -80,37 +82,44 @@ function InstrumentDetail() {
     }
   }
 
-  if (loading) return <div className="loading">Загрузка...</div>
+  if (loading) return <Card padding="lg"><div style={{ textAlign: 'center' }}>Загрузка...</div></Card>
   if (notLoggedIn) {
     return (
-      <div className="instrument-detail-page">
-        <div className="page-header">
-          <Link to="/glossary" className="back-link">← К глоссарию</Link>
-        </div>
-        <div className="locked-message">
-          <p>Войдите для просмотра информации об инструменте</p>
-          <div className="locked-actions">
-            <Link to="/login" className="btn btn-primary">Войти</Link>
-            <Link to="/register" className="btn btn-secondary">Регистрация</Link>
+      <div className="instrument-detail-page" style={{ maxWidth: '600px', margin: '2rem auto', padding: '0 1rem' }}>
+        <Card padding="lg">
+          <div style={{ textAlign: 'center' }}>
+            <p style={{ marginBottom: '1.5rem' }}>Войдите для просмотра информации об инструменте</p>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <Button as={Link} to="/login">Войти</Button>
+              <Button as={Link} to="/register" variant="secondary">Регистрация</Button>
+            </div>
           </div>
-        </div>
+        </Card>
       </div>
     )
   }
   if (!instrument) return null
 
   return (
-    <div className="instrument-detail-page">
+    <div className="instrument-detail-page" style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem' }}>
       <div className="page-header">
-        <Link to="/glossary" className="back-link">← К глоссарию</Link>
+        <Link to="/glossary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)' }}>
+          <ChevronLeft size={20} /> К глоссарию
+        </Link>
         {currentUser?.is_superuser && (
           <div className="course-actions">
             {!isEditing ? (
-              <button className="btn btn-primary" onClick={() => setIsEditing(true)}>Редактировать</button>
+              <Button onClick={() => setIsEditing(true)}>
+                <Edit size={16} /> Редактировать
+              </Button>
             ) : (
               <>
-                <button className="btn btn-secondary" onClick={() => setIsEditing(false)}>Отмена</button>
-                <button className="btn btn-primary" onClick={handleSave}>Сохранить</button>
+                <Button variant="secondary" onClick={() => setIsEditing(false)}>
+                  <X size={16} /> Отмена
+                </Button>
+                <Button onClick={handleSave}>
+                  <Save size={16} /> Сохранить
+                </Button>
               </>
             )}
           </div>

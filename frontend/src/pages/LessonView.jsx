@@ -7,6 +7,7 @@ import {
 import { coursesApi, quizApi, authApi, commentsApi } from '../api'
 import { useToast, ToastContainer } from '../components/Toast'
 import { Card, Badge, Button } from '../components/ui/index.jsx'
+import VideoPlayer from '../components/VideoPlayer'
 
 function LessonView() {
   const { courseId, lessonId, contentId } = useParams()
@@ -186,21 +187,19 @@ function LessonView() {
       <h1>{lesson.title}</h1>
       
       {lesson.video_url && (
-        <div className="video-container">
+        <div className="video-container" style={{ marginBottom: '2rem' }}>
           {videoId ? (
-            <iframe
-              width="100%"
-              height="400"
-              src={`https://www.youtube.com/embed/${videoId}`}
-              frameBorder="0"
-              allowFullScreen
-              title={lesson.title}
-            />
+            <div style={{ position: 'relative', paddingTop: '56.25%' }}>
+              <iframe
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                src={`https://www.youtube.com/embed/${videoId}`}
+                frameBorder="0"
+                allowFullScreen
+                title={lesson.title}
+              />
+            </div>
           ) : (
-            <video controls width="100%">
-              <source src={lesson.video_url} type="video/mp4" />
-              Ваш браузер не поддерживает видео
-            </video>
+            <VideoPlayer src={lesson.video_url} />
           )}
         </div>
       )}

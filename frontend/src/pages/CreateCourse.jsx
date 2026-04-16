@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { BookOpen, Calendar } from 'lucide-react'
 import { coursesApi, authApi } from '../api'
 import { useToast } from '../components/Toast'
+import { Card, Badge, Button } from '../components/ui/index.jsx'
 
 const SPECIALIZATIONS = [
   { value: 'dentist', label: 'Врач-стоматолог' },
@@ -64,15 +66,24 @@ function CreateCourse() {
       </div>
       
       <div className="create-course-container">
-        <div className="create-course-intro">
-          <div className="intro-icon">📚</div>
-          <h2>Новый курс</h2>
-          <p>Создайте свой первый обучающий курс. Добавьте название, описание и наполните его полезным контентом.</p>
-        </div>
+        <Card padding="lg" style={{ marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <BookOpen size={24} color="white" />
+            </div>
+            <div>
+              <h2 style={{ margin: 0 }}>Новый курс</h2>
+              <p style={{ margin: '0.25rem 0 0', color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
+                Создайте свой первый обучающий курс
+              </p>
+            </div>
+          </div>
+        </Card>
 
-        <form onSubmit={handleSubmit} className="create-course-form">
-          <div className="form-section">
-            <h3>Основная информация</h3>
+        <Card padding="lg">
+          <form onSubmit={handleSubmit}>
+            <div className="form-section">
+              <h3 style={{ marginBottom: '1.5rem' }}>Основная информация</h3>
             
             <div className="form-group">
               <label htmlFor="title">Название курса</label>
@@ -117,8 +128,11 @@ function CreateCourse() {
           </div>
 
           {currentUser?.is_superuser && (
-            <div className="form-section">
-              <h3>Период доступа (только для superuser)</h3>
+            <div className="form-section" style={{ marginTop: '1.5rem' }}>
+              <h3 style={{ marginBottom: '1rem' }}>
+                <Calendar size={18} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />
+                Период доступа
+              </h3>
               <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="start_date">Дата начала</label>
@@ -127,6 +141,7 @@ function CreateCourse() {
                     type="date"
                     value={dates.start_date}
                     onChange={(e) => setDates({ ...dates, start_date: e.target.value })}
+                    style={{ width: '100%', padding: '0.75rem', border: '1px solid var(--color-border)', borderRadius: '8px' }}
                   />
                 </div>
                 <div className="form-group">
@@ -136,29 +151,23 @@ function CreateCourse() {
                     type="date"
                     value={dates.end_date}
                     onChange={(e) => setDates({ ...dates, end_date: e.target.value })}
+                    style={{ width: '100%', padding: '0.75rem', border: '1px solid var(--color-border)', borderRadius: '8px' }}
                   />
                 </div>
               </div>
             </div>
           )}
 
-          <div className="form-actions">
-            <button 
-              type="submit" 
-              className="btn btn-primary btn-lg"
-              disabled={isLoading}
-            >
-              {isLoading ? 'Создание...' : 'Создать курс'}
-            </button>
-            <button 
-              type="button" 
-              className="btn btn-secondary"
-              onClick={() => navigate('/my-courses')}
-            >
-              Отмена
-            </button>
-          </div>
-        </form>
+            <div className="form-actions" style={{ marginTop: '2rem', display: 'flex', gap: '1rem' }}>
+              <Button type="submit" size="lg" disabled={isLoading}>
+                {isLoading ? 'Создание...' : 'Создать курс'}
+              </Button>
+              <Button variant="secondary" type="button" onClick={() => navigate('/my-courses')}>
+                Отмена
+              </Button>
+            </div>
+          </form>
+        </Card>
       </div>
     </div>
   )

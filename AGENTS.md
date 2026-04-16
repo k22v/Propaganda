@@ -209,7 +209,12 @@ Sections → chapters → contents → progress - классический N+1. 
 10. **Layout.jsx/css** - обновлён с lucide-react иконками, mobile меню, улучшенный header
 11. **CourseDetail.jsx** - добавлены lucide-react иконки для контента и навигации
 12. **MyCourses.jsx** - обновлён с Card, Badge, Button компонентами
-13. **LessonView.jsx** - добавлены lucide-react иконки для комментариев и квизов
+13. **LessonView.jsx** - добавлены lucide-react иконки для комментариев и квизов, интегрирован VideoPlayer
+14. **QuizView.jsx** - полностью переработан с Card, Badge, Button компонентами
+15. **CreateCourse.jsx** - обновлён с Card, Badge, Button
+16. **CreateQuiz.jsx** - обновлён с Card, Badge, Button, lucide-react иконками
+17. **Glossary.jsx** - добавлены импорты для UI компонентов
+18. **InstrumentDetail.jsx** - обновлён с Card, Badge, Button, lucide-react иконками
 
 ---
 

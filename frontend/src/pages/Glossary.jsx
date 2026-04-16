@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Search, Plus, X } from 'lucide-react'
 import { instrumentsApi, authApi } from '../api'
 import { useToast, ToastContainer } from '../components/Toast'
 import { useDebounce } from '../hooks/useDebounce'
+import { Card, Badge, Button } from '../components/ui/index.jsx'
 
 function Glossary() {
   const navigate = useNavigate()
