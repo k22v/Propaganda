@@ -79,7 +79,12 @@ function App() {
     setIsAuthenticated(true)
   }
 
-  const isSuperuser = !!currentUser && (currentUser.is_superuser === true || currentUser.is_superuser === 1)
+  const isSuperuser = !!currentUser && (
+    currentUser.is_superuser === true || 
+    currentUser.is_superuser === 1 ||
+    currentUser.role === 'admin' ||
+    currentUser.role === 'teacher'
+  )
   const isAdmin = !!currentUser && (currentUser.role === 'admin' || currentUser.is_superuser === true)
 
   if (loading) return <Loader />

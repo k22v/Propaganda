@@ -229,7 +229,14 @@ function Layout({ isAuthenticated, onLogout }) {
                       <h4>Уведомления</h4>
                       {unreadCount > 0 && (
                         <button 
-                          onClick={() => setNotifications(n => n.map(n => ({...n, read: true})))}
+                          onClick={async () => {
+                            try {
+                              await notificationsApi.markAllRead()
+                              setNotifications(n => n.map(n => ({...n, read: true})))
+                            } catch (err) {
+                              console.error('Error marking all as read:', err)
+                            }
+                          }}
                           className="mark-all-btn"
                         >
                           Отметить все
