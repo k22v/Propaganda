@@ -13,11 +13,8 @@ from app.models import User
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 
-async def get_token_from_cookie(request: Request) -> str:
-    token = request.cookies.get("access_token")
-    if not token:
-        token = request.headers.get("Authorization", "").replace("Bearer ", "")
-    return token
+async def get_token_from_header(request: Request) -> str:
+    return request.headers.get("Authorization", "").replace("Bearer ", "")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -39,7 +36,7 @@ async def get_current_user(
     request: Request,
     db: AsyncSession = Depends(get_db)
 ) -> User:
-    token = await get_token_from_cookie(request)
+    token = await get_token_from_header(request)
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -108,7 +105,7 @@ async def get_current_user_optional(
     request: Request,
     db: AsyncSession = Depends(get_db)
 ) -> Optional[User]:
-    token = await get_token_from_cookie(request)
+    token = await get_token_from_header(request)
     if not token:
         return None
 

@@ -82,13 +82,6 @@ async def login(request: Request,
             data={"sub": str(user.id)},
             expires_delta=timedelta(minutes=expire_minutes)
         )
-        response.set_cookie(
-            key="access_token",
-            value=access_token,
-            httponly=True,
-            max_age=expire_minutes * 60,
-            samesite="lax"
-        )
         
         await log_activity(
             db=db,
@@ -152,8 +145,7 @@ async def update_profile(
 
 
 @router.post("/logout")
-async def logout(response: Response):
-    response.delete_cookie("access_token")
+async def logout():
     return {"message": "Logged out"}
 
 
