@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { Search, BookOpen } from 'lucide-react'
+import { Search, BookOpen, Plus } from 'lucide-react'
 import { coursesApi, authApi } from '../api'
 import { useToast, ToastContainer } from '../components/Toast'
 import { Card, Badge, Button } from '../components/ui/index.jsx'
@@ -96,7 +96,12 @@ function Courses() {
     return () => observer.disconnect()
   }, [hasMore, loading])
 
-  const showEditButton = currentUser && currentUser.is_superuser
+  const canCreateCourse = !!currentUser && (
+    currentUser.is_superuser === true ||
+    currentUser.is_superuser === 1 ||
+    currentUser.role === 'admin' ||
+    currentUser.role === 'teacher'
+  )
 
   const handleSpecializationChange = (specValue, index) => {
     if (specValue && currentUser && !currentUser.is_superuser && currentUser.specialization) {
@@ -123,6 +128,11 @@ function Courses() {
     <div className="courses-page">
       <div className="page-header">
         <h1>Доступные курсы</h1>
+        {canCreateCourse && (
+          <Link to="/create">
+            <Button><Plus size={16} /> Создать курс</Button>
+          </Link>
+        )}
       </div>
       
       <div className="search-box">

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from datetime import datetime
 from typing import Optional, List
 from app.database import get_db
-from app.models import User, Comment, Enrollment, LessonContent, Course
+from app.models import User, Comment, Enrollment, LessonContent, Course, Chapter, Section
 from app.schemas import CommentCreate, CommentResponse
 from app.auth import get_current_active_user, get_current_user_optional
 
@@ -14,24 +14,26 @@ router = APIRouter(prefix="/comments", tags=["comments"])
 
 async def check_user_can_access_lesson(db: AsyncSession, user_id: int, lesson_id: int) -> bool:
     result = await db.execute(
-        select(LessonContent)
+        select(Course.id)
+        .select_from(LessonContent)
+        .join(Chapter, LessonContent.chapter_id == Chapter.id)
+        .join(Section, Chapter.section_id == Section.id)
+        .join(Course, Section.course_id == Course.id)
         .where(LessonContent.id == lesson_id)
     )
-    lesson = result.scalar_one_or_none()
-    
-    if not lesson:
+    course_id = result.scalar_one_or_none()
+
+    if not course_id:
         return False
-    
+
     result = await db.execute(
-        select(Enrollment)
-        .where(
+        select(func.count(Enrollment.id)).where(
             Enrollment.user_id == user_id,
-            Enrollment.course_id == lesson.course_id
+            Enrollment.course_id == course_id,
         )
     )
-    enrollment = result.scalar_one_or_none()
-    
-    return enrollment is not None
+    count = result.scalar() or 0
+    return count > 0
 
 
 @router.get("/lesson/{lesson_id}", response_model=List[CommentResponse])

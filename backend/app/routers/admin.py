@@ -28,34 +28,33 @@ async def get_users(
     db: AsyncSession = Depends(get_db),
     admin: User = Depends(require_admin)
 ):
-    query = select(User)
+    base_query = select(User)
     
     if search:
         search_pattern = f"%{search}%"
-        query = query.where(
+        base_query = base_query.where(
             (User.username.ilike(search_pattern)) |
             (User.email.ilike(search_pattern)) |
             (User.full_name.ilike(search_pattern))
         )
     
     if role:
-        query = query.where(User.role == role)
+        base_query = base_query.where(User.role == role)
     
     if specialization:
-        query = query.where(User.specialization == specialization)
+        base_query = base_query.where(User.specialization == specialization)
     
     if is_active is not None:
-        query = query.where(User.is_active == is_active)
+        base_query = base_query.where(User.is_active == is_active)
     
-    query = query.order_by(User.created_at.desc()).offset(skip).limit(limit)
+    count_query = select(func.count()).select_from(base_query.subquery())
+    total_result = await db.execute(count_query)
+    total = total_result.scalar() or 0
     
-    result = await db.execute(query)
-    users = result.scalars().all()
-    
-    total_result = await db.execute(
-        select(func.count(User.id))
+    result = await db.execute(
+        base_query.order_by(User.created_at.desc()).offset(skip).limit(limit)
     )
-    total = total_result.scalar()
+    users = result.scalars().all()
     
     return {
         "users": [

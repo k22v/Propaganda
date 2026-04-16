@@ -199,7 +199,7 @@ async def respond_to_review(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if not current_user.is_superuser:
+    if not current_user.is_superuser and current_user.role != "admin":
         raise HTTPException(status_code=403, detail="Только администратор может отвечать на отзывы")
     
     result = await db.execute(
