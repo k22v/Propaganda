@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
-from typing import List
+from typing import List, Optional
 from app.database import get_db
-from app.models import User, Review, Course, Enrollment, Notification
+from app.models import User, Review, Course, Enrollment
 from app.schemas import ReviewCreate, ReviewResponse, ReviewUpdate
-from app.auth import get_current_active_user
+from app.auth import get_current_active_user, get_current_user
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -14,38 +14,60 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 @router.get("/course/{course_id}", response_model=List[ReviewResponse])
 async def get_course_reviews(
     course_id: int,
+    current_user: Optional[User] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    print(f"=== GET reviews for course {course_id} ===")
-    try:
+    # Check if course is published and visible
+    result = await db.execute(
+        select(Course).where(Course.id == course_id)
+    )
+    course = result.scalar_one_or_none()
+    
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    # Get reviews - authenticated users can see all, anonymous can only see published
+    if course.is_published:
         result = await db.execute(
             select(Review).where(Review.course_id == course_id)
             .options(selectinload(Review.user))
             .order_by(Review.created_at.desc())
         )
-        reviews = list(result.scalars().all())
-        print(f"Reviews found: {len(reviews)}")
-        
-        return reviews
-    except Exception as e:
-        import traceback
-        print(f"Error: {e}")
-        print(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+    else:
+        # Course not published - require authentication
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Authentication required")
+        result = await db.execute(
+            select(Review).where(Review.course_id == course_id)
+            .options(selectinload(Review.user))
+            .order_by(Review.created_at.desc())
+        )
+    
+    return list(result.scalars().all())
 
 
 @router.get("/course/{course_id}/stats")
 async def get_course_review_stats(
     course_id: int,
+    current_user: Optional[User] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    try:
-        result = await db.execute(
-            select(
-                func.count(Review.id).label("count"),
-                func.avg(Review.rating).label("average")
-            ).where(Review.course_id == course_id)
-        )
+    # Require auth for unpublished courses
+    result = await db.execute(
+        select(Course).where(Course.id == course_id)
+    )
+    course = result.scalar_one_or_none()
+    
+    if not course or not course.is_published:
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Authentication required")
+    
+    result = await db.execute(
+        select(
+            func.count(Review.id).label("count"),
+            func.avg(Review.rating).label("average")
+        ).where(Review.course_id == course_id)
+    )
         stats = result.one()
         
         return {
