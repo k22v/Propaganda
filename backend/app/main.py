@@ -2,7 +2,6 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.security import SecurityHeadersMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
