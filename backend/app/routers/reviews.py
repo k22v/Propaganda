@@ -4,7 +4,7 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from typing import List, Optional
 from app.database import get_db
-from app.models import User, Review, Course, Enrollment
+from app.models import User, Review, Course, Enrollment, Notification
 from app.schemas import ReviewCreate, ReviewResponse, ReviewUpdate
 from app.auth import get_current_active_user, get_current_user
 
@@ -52,16 +52,17 @@ async def get_course_review_stats(
     current_user: Optional[User] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    # Require auth for unpublished courses
     result = await db.execute(
         select(Course).where(Course.id == course_id)
     )
     course = result.scalar_one_or_none()
-    
-    if not course or not course.is_published:
-        if not current_user:
-            raise HTTPException(status_code=401, detail="Authentication required")
-    
+
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    if not course.is_published and not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
     result = await db.execute(
         select(
             func.count(Review.id).label("count"),
@@ -69,14 +70,11 @@ async def get_course_review_stats(
         ).where(Review.course_id == course_id)
     )
     stats = result.one()
-        
-        return {
-            "count": stats.count or 0,
-            "average": round(stats.average, 1) if stats.average else 0
-        }
-    except Exception as e:
-        print(f"Error loading review stats: {e}")
-        return {"count": 0, "average": 0}
+
+    return {
+        "count": stats.count or 0,
+        "average": round(stats.average, 1) if stats.average else 0
+    }
 
 
 @router.post("/", response_model=ReviewResponse)
