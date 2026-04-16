@@ -204,6 +204,7 @@ async def get_attempts_history(
 @router.post("/{quiz_id}/attempt", response_model=QuizAttemptResponse)
 @limiter.limit("10/minute")
 async def submit_quiz_attempt(
+    request: Request,
     quiz_id: int,
     attempt_data: QuizAttemptCreate,
     current_user: User = Depends(get_current_active_user),

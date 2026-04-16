@@ -6,7 +6,7 @@ from typing import List, Optional
 from app.database import get_db
 from app.models import User, Review, Course, Enrollment, Notification
 from app.schemas import ReviewCreate, ReviewResponse, ReviewUpdate
-from app.auth import get_current_active_user, get_current_user
+from app.auth import get_current_active_user, get_current_user_optional
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -14,7 +14,7 @@ router = APIRouter(prefix="/reviews", tags=["reviews"])
 @router.get("/course/{course_id}", response_model=List[ReviewResponse])
 async def get_course_reviews(
     course_id: int,
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db)
 ):
     # Check if course is published and visible
@@ -49,7 +49,7 @@ async def get_course_reviews(
 @router.get("/course/{course_id}/stats")
 async def get_course_review_stats(
     course_id: int,
-    current_user: Optional[User] = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_current_user_optional),
     db: AsyncSession = Depends(get_db)
 ):
     result = await db.execute(

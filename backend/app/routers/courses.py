@@ -151,6 +151,9 @@ async def create_course(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
+    if not current_user.is_superuser and current_user.role != "admin":
+        raise HTTPException(status_code=403, detail="Not enough permissions")
+
     try:
         course = Course(
             title=course_data.title,
@@ -769,6 +772,7 @@ async def reorder_contents(
 @router.post("/{course_id}/enroll")
 @limiter.limit("5/minute")
 async def enroll_course(
+    request: Request,
     course_id: int,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
@@ -869,6 +873,7 @@ async def get_content(
 @router.post("/upload")
 @limiter.limit("10/minute")
 async def upload_file(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_active_user)
 ):
