@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, or_
 from sqlalchemy.orm import selectinload
@@ -17,6 +17,7 @@ from app.schemas import (
 )
 from app.auth import get_current_active_user
 from app.policies import can_edit_course, require_permission, Permission
+from app.limiter import limiter
 from app.sanitize import sanitize_html
 from app.upload_utils import (
     validate_file,
