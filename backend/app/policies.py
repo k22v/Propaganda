@@ -156,8 +156,8 @@ def has_permission(user: User, permission: Permission) -> bool:
 
 
 def require_permission(permission: Permission):
-    """Dependency to require specific permission."""
-    async def checker(
+    """Dependency factory to require specific permission."""
+    async def dependency(
         current_user: User = Depends(get_current_user)
     ) -> User:
         if not has_permission(current_user, permission):
@@ -166,12 +166,12 @@ def require_permission(permission: Permission):
                 detail=f"Permission required: {permission.value}"
             )
         return current_user
-    return checker
+    return dependency
 
 
 def require_permissions(permissions: List[Permission]):
-    """Dependency to require multiple permissions (any of them)."""
-    async def checker(
+    """Dependency factory to require multiple permissions (any of them)."""
+    async def dependency(
         current_user: User = Depends(get_current_user)
     ) -> User:
         user_perms = get_user_permissions(current_user)
@@ -181,12 +181,12 @@ def require_permissions(permissions: List[Permission]):
                 detail=f"Any of these permissions required: {[p.value for p in permissions]}"
             )
         return current_user
-    return checker
+    return dependency
 
 
 def require_all_permissions(permissions: List[Permission]):
-    """Dependency to require ALL permissions."""
-    async def checker(
+    """Dependency factory to require ALL permissions."""
+    async def dependency(
         current_user: User = Depends(get_current_user)
     ) -> User:
         user_perms = get_user_permissions(current_user)
@@ -196,7 +196,7 @@ def require_all_permissions(permissions: List[Permission]):
                 detail=f"All permissions required: {[p.value for p in permissions]}"
             )
         return current_user
-    return checker
+    return dependency
 
 
 def can_edit_course(user: User, course_author_id: int) -> bool:
