@@ -1,8 +1,10 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { Moon, Sun, Bell, User, BookOpen, LogOut, Settings, Menu, X } from 'lucide-react'
 import { authApi, notificationsApi } from '../api'
 import { useTheme } from '../context/ThemeContext'
 import MapWidget from './MapWidget'
+import './Layout.css'
 
 const ANIMALS = [
   { id: 1, emoji: '🦊' }, { id: 2, emoji: '🐼' }, { id: 3, emoji: '🦁' },
@@ -12,7 +14,7 @@ const ANIMALS = [
   { id: 13, emoji: '🦩' }, { id: 14, emoji: '🐳' }, { id: 15, emoji: '🦉' }, { id: 16, emoji: '🦅' },
 ]
 
-function Layout({ isAuthenticated, onLogout, onLogin }) {
+function Layout({ isAuthenticated, onLogout }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { theme, toggleTheme } = useTheme()
@@ -21,9 +23,17 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
   const [loginError, setLoginError] = useState('')
   const [notifications, setNotifications] = useState([])
   const [showNotifications, setShowNotifications] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  
+  const [userIsAdmin, setUserIsAdmin] = useState(false)
+  const [currentUser, setCurrentUser] = useState(null)
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false)
+  const avatarMenuRef = useRef(null)
+  const notificationsRef = useRef(null)
 
   useEffect(() => {
     setShowLogin(false)
+    setMobileMenuOpen(false)
   }, [location.pathname])
 
   useEffect(() => {
@@ -37,8 +47,39 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
           })))
         })
         .catch(() => {})
+    } else {
+      setNotifications([])
     }
   }, [isAuthenticated])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      authApi.getMe()
+        .then(({ data }) => {
+          setCurrentUser(data)
+          setUserIsAdmin(data?.role === 'admin' || data?.is_superuser)
+        })
+        .catch(() => {
+          setUserIsAdmin(false)
+        })
+    } else {
+      setCurrentUser(null)
+      setUserIsAdmin(false)
+    }
+  }, [isAuthenticated])
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (avatarMenuRef.current && !avatarMenuRef.current.contains(event.target)) {
+        setShowAvatarMenu(false)
+      }
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
+        setShowNotifications(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const formatTime = (dateStr) => {
     if (!dateStr) return ''
@@ -65,35 +106,6 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
   }
 
   const unreadCount = notifications.filter(n => !n.read).length
-  const [userIsSuperuser, setUserIsSuperuser] = useState(false)
-  const [userIsAdmin, setUserIsAdmin] = useState(false)
-  const [currentUser, setCurrentUser] = useState(null)
-  const [showAvatarMenu, setShowAvatarMenu] = useState(false)
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      authApi.getMe()
-        .then(({ data }) => {
-          setCurrentUser(data)
-          setUserIsSuperuser(data?.is_superuser === true || data?.is_superuser === 1 || data?.id === 5)
-          setUserIsAdmin(data?.role === 'admin')
-        })
-        .catch(() => {
-          setUserIsSuperuser(false)
-          setUserIsAdmin(false)
-        })
-    }
-  }, [isAuthenticated])
-
-  const handleAvatarSelect = async (avatarId) => {
-    try {
-      await authApi.updateAvatar(avatarId)
-      setCurrentUser({ ...currentUser, avatar_id: avatarId })
-      setShowAvatarMenu(false)
-    } catch (err) {
-      console.error('Error updating avatar:', err)
-    }
-  }
 
   const handleLogout = async () => {
     await onLogout()
@@ -105,21 +117,23 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
     setLoginError('')
     try {
       await authApi.login(loginData)
-      if (onLogin) {
-        onLogin()
-      } else {
-        window.location.reload()
-      }
+      window.location.reload()
       setShowLogin(false)
       setLoginData({ username: '', password: '' })
     } catch (err) {
-      const errorMsg = err.response?.data?.detail || 'Неверный логин или пароль'
       if (err.response?.status === 403) {
         setLoginError('Ваш аккаунт заблокирован. Свяжитесь с администратором.')
       } else {
         setLoginError('Неверный логин или пароль')
       }
     }
+  }
+
+  const getAvatarEmoji = () => {
+    if (currentUser?.avatar_id) {
+      return ANIMALS.find(a => a.id === currentUser.avatar_id)?.emoji || '👤'
+    }
+    return '👤'
   }
 
   return (
@@ -129,56 +143,104 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
           <Link to="/" className="logo">
             <img src="/propaganda-wordmark.svg" alt="Logo" className="logo-img" />
           </Link>
-          <div className="nav-links">
-            <Link to="/courses">Все курсы</Link>
+
+          <button 
+            className="mobile-menu-btn"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+
+          <div className={`nav-links ${mobileMenuOpen ? 'nav-links-open' : ''}`}>
+            <Link to="/courses" className="nav-link">
+              <BookOpen size={18} />
+              <span>Все курсы</span>
+            </Link>
+            
+            {isAuthenticated && (
+              <Link to="/my-courses" className="nav-link">
+                <span>Мои курсы</span>
+              </Link>
+            )}
+            
             {isAuthenticated ? (
               <>
-                <Link to="/my-courses">Мои курсы</Link>
-                <div className="avatar-dropdown">
-                  <button className="avatar-btn-small">
-                    {currentUser?.avatar_id ? (
-                      ANIMALS.find(a => a.id === currentUser.avatar_id)?.emoji || '👤'
-                    ) : (
-                      '👤'
-                    )}
+                <div className="avatar-dropdown" ref={avatarMenuRef}>
+                  <button 
+                    className="avatar-btn-small"
+                    onClick={() => setShowAvatarMenu(!showAvatarMenu)}
+                  >
+                    <span className="avatar-emoji">{getAvatarEmoji()}</span>
                   </button>
-                  <div className="avatar-menu">
-                    <div className="avatar-menu-inner">
-                      <Link to="/profile">📝 Профиль</Link>
-                      <Link to="/glossary">📖 Глоссарий</Link>
-                      {userIsAdmin && <Link to="/admin">⚙️ Админ</Link>}
-                      <button onClick={handleLogout}>🚪 Выйти</button>
+                  {showAvatarMenu && (
+                    <div className="avatar-menu">
+                      <div className="avatar-menu-header">
+                        <span className="avatar-name">{currentUser?.full_name || currentUser?.username}</span>
+                        <span className="avatar-email">{currentUser?.email}</span>
+                      </div>
+                      <div className="avatar-menu-items">
+                        <Link to="/profile" className="menu-item">
+                          <User size={16} />
+                          Профиль
+                        </Link>
+                        {userIsAdmin && (
+                          <Link to="/admin" className="menu-item">
+                            <Settings size={16} />
+                            Админ-панель
+                          </Link>
+                        )}
+                        <button onClick={handleLogout} className="menu-item menu-item-danger">
+                          <LogOut size={16} />
+                          Выйти
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </>
             ) : (
               <>
-                <button onClick={() => setShowLogin(true)} className="btn-login">Войти</button>
-                <Link to="/register" className="btn-register">Регистрация</Link>
+                <button onClick={() => setShowLogin(true)} className="btn btn-secondary btn-sm">
+                  Войти
+                </button>
+                <Link to="/register" className="btn btn-primary btn-sm">
+                  Регистрация
+                </Link>
               </>
             )}
+            
             <button onClick={toggleTheme} className="theme-toggle-btn" title="Сменить тему">
-              {theme === 'light' ? '🌙' : '☀️'}
+              {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
             </button>
+            
             {isAuthenticated && (
-              <div className="notifications-wrapper">
+              <div className="notifications-wrapper" ref={notificationsRef}>
                 <button 
                   onClick={() => setShowNotifications(!showNotifications)} 
                   className="notifications-btn"
                   title="Уведомления"
                 >
-                  🔔
+                  <Bell size={20} />
                   {unreadCount > 0 && <span className="notifications-badge">{unreadCount}</span>}
                 </button>
                 {showNotifications && (
                   <div className="notifications-dropdown">
                     <div className="notifications-header">
                       <h4>Уведомления</h4>
-                      {unreadCount > 0 && <button onClick={() => setNotifications(n => n.map(n => ({...n, read: true})))}>Отметить все</button>}
+                      {unreadCount > 0 && (
+                        <button 
+                          onClick={() => setNotifications(n => n.map(n => ({...n, read: true})))}
+                          className="mark-all-btn"
+                        >
+                          Отметить все
+                        </button>
+                      )}
                     </div>
                     {notifications.length === 0 ? (
-                      <p className="no-notifications">Нет уведомлений</p>
+                      <div className="no-notifications">
+                        <Bell size={32} />
+                        <p>Нет уведомлений</p>
+                      </div>
                     ) : (
                       <div className="notifications-list">
                         {notifications.map(n => (
@@ -200,6 +262,7 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
           </div>
         </div>
       </nav>
+
       {showLogin && !isAuthenticated && (
         <div className="auth-overlay" onClick={() => setShowLogin(false)}>
           <div className="auth-card" onClick={e => e.stopPropagation()}>
@@ -254,18 +317,22 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
               Нет аккаунта? <Link to="/register" onClick={() => setShowLogin(false)}>Зарегистрироваться</Link>
             </p>
             
-            <button type="button" className="auth-close" onClick={() => setShowLogin(false)}>×</button>
+            <button type="button" className="auth-close" onClick={() => setShowLogin(false)}>
+              <X size={24} />
+            </button>
           </div>
         </div>
       )}
+
       <main className="main-content">
         <Outlet />
       </main>
+
       <footer className="footer">
         <div className="footer-content">
           <div className="footer-section">
             <div className="footer-logo">
-              <img src="/propaganda-wordmark.svg" alt="Logo" className="footer-logo-img" style={{height: '30px'}} />
+              <img src="/propaganda-wordmark.svg" alt="Logo" className="footer-logo-img" />
             </div>
             <p className="footer-text">© 2024 Пропаганда ДВ. Все права защищены.</p>
           </div>
@@ -281,89 +348,6 @@ function Layout({ isAuthenticated, onLogout, onLogin }) {
           </div>
         </div>
       </footer>
-      
-      <style>{`
-        .notifications-wrapper {
-          position: relative;
-        }
-        .notifications-btn {
-          background: none;
-          border: none;
-          font-size: 1.25rem;
-          cursor: pointer;
-          padding: 0.25rem;
-          position: relative;
-        }
-        .notifications-badge {
-          position: absolute;
-          top: -4px;
-          right: -4px;
-          background: #ef4444;
-          color: white;
-          font-size: 0.65rem;
-          padding: 0.15rem 0.35rem;
-          border-radius: 10px;
-          font-weight: 600;
-        }
-        .notifications-dropdown {
-          position: absolute;
-          top: 100%;
-          right: 0;
-          width: 320px;
-          background: var(--color-surface);
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-md);
-          box-shadow: var(--shadow-lg);
-          z-index: 100;
-          margin-top: 0.5rem;
-        }
-        .notifications-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 0.75rem 1rem;
-          border-bottom: 1px solid var(--color-border);
-        }
-        .notifications-header h4 {
-          margin: 0;
-          font-size: 0.95rem;
-        }
-        .notifications-header button {
-          background: none;
-          border: none;
-          color: #1a6ce8;
-          font-size: 0.8rem;
-          cursor: pointer;
-        }
-        .no-notifications {
-          padding: 2rem;
-          text-align: center;
-          color: var(--color-text-secondary);
-        }
-        .notifications-list {
-          max-height: 300px;
-          overflow-y: auto;
-        }
-        .notification-item {
-          padding: 0.75rem 1rem;
-          border-bottom: 1px solid var(--color-border);
-          cursor: pointer;
-        }
-        .notification-item:hover {
-          background: var(--color-bg);
-        }
-        .notification-item.unread {
-          background: rgba(26, 108, 232, 0.05);
-        }
-        .notification-item p {
-          margin: 0 0 0.25rem;
-          font-size: 0.9rem;
-        }
-        .notification-time {
-          font-size: 0.75rem;
-          color: var(--color-text-secondary);
-        }
-      `}</style>
     </div>
   )
 }

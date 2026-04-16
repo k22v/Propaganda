@@ -1,0 +1,209 @@
+/* ============================================
+   ADMIN TOOLBAR
+   ============================================ */
+.admin-toolbar {
+  margin-bottom: 1.5rem;
+}
+
+.toolbar-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.toolbar-input {
+  width: 100%;
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: var(--color-background);
+}
+
+.toolbar-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.toolbar-select {
+  padding: 0.625rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.875rem;
+  background: var(--color-background);
+  cursor: pointer;
+}
+
+.toolbar-select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* ============================================
+   USERS TABLE
+   ============================================ */
+.users-table-card {
+  overflow: hidden;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.users-table th {
+  text-align: left;
+  padding: 1rem 1.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  background: var(--color-background);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.users-table td {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: middle;
+}
+
+.users-table tr:last-child td {
+  border-bottom: none;
+}
+
+.users-table tr:hover td {
+  background: var(--color-background);
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name {
+  font-weight: 500;
+}
+
+.user-email {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.user-specialty {
+  font-size: 0.875rem;
+}
+
+.user-activity {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.table-loading {
+  padding: 1rem;
+}
+
+.table-row-skeleton {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table-empty {
+  text-align: center;
+  padding: 3rem;
+  color: var(--color-text-secondary);
+}
+
+.table-empty span {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* ============================================
+   PAGINATION
+   ============================================ */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+
+.pagination-info {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================
+   ADMIN STATS ROW
+   ============================================ */
+.admin-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.admin-stat-card .stat-icon {
+  font-size: 1.5rem;
+}
+
+.admin-stat-card .stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-stat-card .stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.admin-stat-card .stat-label {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 1024px) {
+  .toolbar-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  .admin-stats-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .toolbar-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .admin-stats-row {
+    grid-template-columns: 1fr;
+  }
+}

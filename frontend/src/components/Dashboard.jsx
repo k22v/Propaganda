@@ -1,45 +1,52 @@
 import { Link } from 'react-router-dom'
+import { BookOpen, CheckCircle2, ClipboardList, Award, Bell, ChevronRight, Play } from 'lucide-react'
+import { Card, Badge, Button, ProgressBar } from './ui/index.jsx'
+import { CourseCard, CourseGrid } from './CourseComponents'
 import './Dashboard.css'
 
 const KPI_CARDS = [
-  { key: 'in_progress', icon: '📚', label: 'В процессе', value: 0 },
-  { key: 'completed', icon: '✅', label: 'Завершено', value: 0 },
-  { key: 'tests', icon: '📝', label: 'Тестов', value: 0 },
-  { key: 'certificates', icon: '🏆', label: 'Сертификатов', value: 0 },
+  { key: 'in_progress', icon: BookOpen, label: 'В процессе', color: '#3b82f6' },
+  { key: 'completed', icon: CheckCircle2, label: 'Завершено', color: '#10b981' },
+  { key: 'tests', icon: ClipboardList, label: 'Тестов', color: '#f59e0b' },
+  { key: 'certificates', icon: Award, label: 'Сертификатов', color: '#8b5cf6' },
 ]
 
-function StatsCharts({ stats }) {
+function StatsGrid({ stats }) {
   const cards = KPI_CARDS.map(c => ({
     ...c,
-    value: stats?.[c.key] ?? c.value
+    value: stats?.[c.key] ?? 0
   }))
 
   return (
     <div className="stats-grid">
       {cards.map(card => (
-        <div key={card.key} className="stat-card">
-          <span className="stat-icon">{card.icon}</span>
+        <Card key={card.key} className="stat-card" padding="md">
+          <div className="stat-icon-wrapper" style={{ backgroundColor: `${card.color}15` }}>
+            <card.icon size={24} style={{ color: card.color }} />
+          </div>
           <div className="stat-content">
             <span className="stat-value">{card.value}</span>
             <span className="stat-label">{card.label}</span>
           </div>
-        </div>
+        </Card>
       ))}
     </div>
   )
 }
 
-function ContinueLearning({ courses }) {
+function ContinueLearning({ courses, onOpen }) {
   if (!courses || courses.length === 0) {
     return (
-      <div className="dashboard-section">
-        <h2 className="section-title">Продолжить обучение</h2>
-        <div className="empty-state-card">
-          <span className="empty-icon">📚</span>
-          <p>У вас пока нет активных курсов</p>
-          <Link to="/courses" className="btn btn-primary">Выбрать курс</Link>
+      <Card padding="lg">
+        <div className="dashboard-section">
+          <h2 className="section-title">Продолжить обучение</h2>
+          <div className="empty-state-card">
+            <BookOpen size={48} className="empty-icon" />
+            <p>У вас пока нет активных курсов</p>
+            <Link to="/courses" className="btn btn-primary">Выбрать курс</Link>
+          </div>
         </div>
-      </div>
+      </Card>
     )
   }
 
@@ -47,20 +54,20 @@ function ContinueLearning({ courses }) {
     <div className="dashboard-section">
       <div className="section-header">
         <h2 className="section-title">Продолжить обучение</h2>
-        <Link to="/my-courses" className="section-link">Все →</Link>
+        <Link to="/my-courses" className="section-link">
+          Все <ChevronRight size={16} />
+        </Link>
       </div>
       <div className="courses-grid">
         {courses.slice(0, 3).map(course => (
-          <Link key={course.id} to={`/courses/${course.id}`} className="course-card-dashboard">
+          <Card key={course.id} className="course-card-dashboard" padding="none">
             <div className="course-cover" style={{ backgroundColor: getCourseColor(course.specialization) }}>
               <span className="course-specialty-badge">{getSpecialtyLabel(course.specialization)}</span>
             </div>
             <div className="course-info">
               <h3 className="course-title">{course.title}</h3>
               <div className="course-progress">
-                <div className="progress-bar">
-                  <div className="progress-fill" style={{ width: `${course.progress || 0}%` }} />
-                </div>
+                <ProgressBar value={course.progress || 0} size="sm" />
                 <span className="progress-text">{course.progress || 0}%</span>
               </div>
               <div className="course-meta">
@@ -68,8 +75,12 @@ function ContinueLearning({ courses }) {
                 {course.next_lesson && <span>След: {course.next_lesson}</span>}
               </div>
             </div>
-            <button className="btn btn-primary course-action">Продолжить</button>
-          </Link>
+            <div className="course-card-footer">
+              <Button onClick={() => onOpen?.(course)} className="btn-block">
+                <Play size={16} /> Продолжить
+              </Button>
+            </div>
+          </Card>
         ))}
       </div>
     </div>
@@ -79,23 +90,29 @@ function ContinueLearning({ courses }) {
 function NotificationsPanel({ notifications }) {
   if (!notifications || notifications.length === 0) {
     return (
-      <div className="notifications-panel">
-        <h3 className="panel-title">Уведомления</h3>
+      <Card padding="lg">
+        <h3 className="panel-title">
+          <Bell size={18} /> Уведомления
+        </h3>
         <div className="empty-notifications">
-          <span>🔔</span>
+          <Bell size={32} />
           <p>Нет новых уведомлений</p>
         </div>
-      </div>
+      </Card>
     )
   }
 
   return (
-    <div className="notifications-panel">
-      <h3 className="panel-title">Уведомления</h3>
+    <Card padding="md">
+      <h3 className="panel-title">
+        <Bell size={18} /> Уведомления
+      </h3>
       <div className="notifications-list">
         {notifications.slice(0, 5).map(n => (
           <div key={n.id} className={`notification-item ${n.is_read ? '' : 'unread'}`}>
-            <span className="notification-icon">{getNotificationIcon(n.type)}</span>
+            <div className="notification-icon">
+              {getNotificationIcon(n.type)}
+            </div>
             <div className="notification-content">
               <p className="notification-message">{n.message}</p>
               <span className="notification-time">{formatTime(n.created_at)}</span>
@@ -103,7 +120,7 @@ function NotificationsPanel({ notifications }) {
           </div>
         ))}
       </div>
-    </div>
+    </Card>
   )
 }
 
@@ -114,7 +131,9 @@ function RecommendedCourses({ courses }) {
     <div className="dashboard-section">
       <div className="section-header">
         <h2 className="section-title">Рекомендованные курсы</h2>
-        <Link to="/courses" className="section-link">Все →</Link>
+        <Link to="/courses" className="section-link">
+          Все <ChevronRight size={16} />
+        </Link>
       </div>
       <div className="recommended-grid">
         {courses.slice(0, 4).map(course => (
@@ -129,6 +148,30 @@ function RecommendedCourses({ courses }) {
         ))}
       </div>
     </div>
+  )
+}
+
+function UpcomingPanel() {
+  const items = [
+    { text: 'Вебинар: Имплантация — сегодня в 19:00', time: 'today' },
+    { text: 'Дедлайн теста по асептике — через 2 дня', time: 'soon' },
+    { text: 'Новый модуль добавлен в ваш курс', time: 'new' },
+  ]
+
+  return (
+    <Card padding="md">
+      <h3 className="panel-title">
+        <Bell size={18} /> Ближайшее
+      </h3>
+      <div className="mt-4 space-y-3 text-sm text-gray-600">
+        {items.map((item, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary" />
+            {item.text}
+          </div>
+        ))}
+      </div>
+    </Card>
   )
 }
 
@@ -148,18 +191,18 @@ function Dashboard({ user, stats, enrolledCourses, recommendedCourses, notificat
           </p>
         </div>
         {enrolledCourses?.length > 0 && (
-          <button className="btn btn-primary btn-continue" onClick={onContinueLast}>
-            Продолжить последний урок →
-          </button>
+          <Button onClick={onContinueLast}>
+            <Play size={16} /> Продолжить последний урок
+          </Button>
         )}
       </div>
 
-      <StatsCharts stats={stats} />
-      <ContinueLearning courses={enrolledCourses} />
+      <StatsGrid stats={stats} />
+      <ContinueLearning courses={enrolledCourses} onOpen={(course) => console.log('open course', course.id)} />
 
       <div className="dashboard-grid">
         <NotificationsPanel notifications={notifications} />
-        <RecommendedCourses courses={recommendedCourses} />
+        <UpcomingPanel />
       </div>
     </div>
   )
@@ -221,4 +264,4 @@ function formatTime(dateStr) {
   return date.toLocaleDateString('ru')
 }
 
-export { Dashboard, StatsCharts, ContinueLearning, NotificationsPanel, RecommendedCourses }
+export { Dashboard, StatsGrid, ContinueLearning, NotificationsPanel, RecommendedCourses }

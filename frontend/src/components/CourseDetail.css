@@ -169,7 +169,25 @@
 }
 
 .content-icon {
-  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  flex-shrink: 0;
+}
+
+.view-content-link .content-icon {
+  color: var(--color-primary);
+}
+
+.quiz-link {
+  margin-top: 0.75rem !important;
+  padding-top: 0.75rem !important;
+  border-top: 1px dashed var(--color-border) !important;
+}
+
+.quiz-link .content-icon {
+  color: #f59e0b;
 }
 
 .content-title {

@@ -1,8 +1,18 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import { authApi, adminApi } from '../api'
+import { Download, Users, BookOpen, CheckCircle2, ClipboardList } from 'lucide-react'
+import { adminApi } from '../api'
+import { Card, Badge, Button, Tabs } from '../components/ui/index.jsx'
+import { AdminToolbar, UsersTable, UserRowActions, AdminStatsRow } from '../components/AdminComponents'
 import { StatsCharts } from '../components/StatsCharts'
+import '../components/AdminComponents.css'
 import '../components/CourseDetail.css'
+
+const TABS = [
+  { id: 'stats', label: 'Статистика' },
+  { id: 'users', label: 'Пользователи' },
+  { id: 'quiz-results', label: 'Результаты тестов' },
+]
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState(null)
@@ -12,22 +22,19 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('users')
   const [quizFilter, setQuizFilter] = useState({ user: '', course: '' })
   const [selectedResult, setSelectedResult] = useState(null)
-  const tabsRef = useRef(null)
+  const [filters, setFilters] = useState({ search: '', role: '', specialization: '', status: '' })
+  const [pagination, setPagination] = useState({ page: 1, total_pages: 1 })
   const initialized = useRef(false)
 
   const loadData = async () => {
     try {
-      console.log('Loading admin data...')
-      const statsRes = await adminApi.getStats()
-      console.log('Stats:', statsRes.data)
+      const [statsRes, usersRes, quizRes] = await Promise.all([
+        adminApi.getStats(),
+        adminApi.getUsers(),
+        adminApi.getQuizResults()
+      ])
       setStats(statsRes.data)
-      
-      const usersRes = await adminApi.getUsers()
-      console.log('Users:', usersRes.data)
       setUsers(usersRes.data)
-      
-      const quizRes = await adminApi.getQuizResults()
-      console.log('Quiz results:', quizRes.data)
       setQuizResults(quizRes.data)
     } catch (err) {
       console.error('Admin load error:', err)
@@ -36,37 +43,35 @@ export default function AdminDashboard() {
     }
   }
 
-  const updateSlider = (index) => {
-    if (!tabsRef.current) return
-    const tabs = tabsRef.current.querySelectorAll('.filter-pill')
-    const activeTabEl = tabs[index]
-    if (!activeTabEl) return
-    
-    const containerRect = tabsRef.current.getBoundingClientRect()
-    const tabRect = activeTabEl.getBoundingClientRect()
-    
-    tabsRef.current.style.setProperty('--slider-left', `${tabRect.left - containerRect.left}px`)
-    tabsRef.current.style.setProperty('--slider-width', `${tabRect.width}px`)
-  }
-
   useEffect(() => {
     loadData()
   }, [])
 
-  useEffect(() => {
-    if (!loading) {
-      const tabIndex = { stats: 0, users: 1, 'quiz-results': 2 }
-      const targetIndex = tabIndex[activeTab] !== undefined ? tabIndex[activeTab] : 1
-      updateSlider(targetIndex)
-    }
-  }, [activeTab, loading])
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      if (filters.search && !user.username.toLowerCase().includes(filters.search.toLowerCase()) &&
+          !user.email.toLowerCase().includes(filters.search.toLowerCase())) {
+        return false
+      }
+      if (filters.role && user.role !== filters.role) return false
+      if (filters.specialization && user.specialization !== filters.specialization) return false
+      if (filters.status !== '') {
+        const isActive = filters.status === 'true'
+        if (user.is_active !== isActive) return false
+      }
+      return true
+    })
+  }, [users, filters])
 
-  useEffect(() => {
-    if (!loading && !initialized.current) {
-      initialized.current = true
-      updateSlider(1)
-    }
-  }, [loading])
+  const filteredQuizResults = useMemo(() => {
+    return quizResults.filter(r => 
+      (!quizFilter.user || 
+        r.username.toLowerCase().includes(quizFilter.user.toLowerCase()) ||
+        r.full_name?.toLowerCase().includes(quizFilter.user.toLowerCase())) &&
+      (!quizFilter.course || 
+        r.course_title.toLowerCase().includes(quizFilter.course.toLowerCase()))
+    )
+  }, [quizResults, quizFilter])
 
   const exportToCSV = (data, filename, columns) => {
     const headers = columns.map(c => c.label).join(',')
@@ -96,7 +101,7 @@ export default function AdminDashboard() {
       { key: 'is_active', label: 'Active' },
       { key: 'created_at', label: 'Created' }
     ]
-    exportToCSV(users, 'users', columns)
+    exportToCSV(filteredUsers, 'users', columns)
   }
 
   const handleExportQuizResults = () => {
@@ -109,50 +114,26 @@ export default function AdminDashboard() {
       { key: 'passed', label: 'Passed' },
       { key: 'completed_at', label: 'Date' }
     ]
-    exportToCSV(quizResults, 'quiz_results', columns)
+    exportToCSV(filteredQuizResults, 'quiz_results', columns)
   }
 
   const updateRole = async (userId, role) => {
-    console.log('updateRole called:', userId, role)
     try {
-      console.log('Sending PATCH request to:', `/admin/users/${userId}/role`, 'with role:', role)
-      const res = await adminApi.updateUserRole(userId, role)
-      console.log('updateRole response:', res)
-      window.location.reload()
+      await adminApi.updateUserRole(userId, role)
+      loadData()
     } catch (err) {
       console.error('Role update error:', err)
-      let errorMsg = 'Unknown error'
-      if (err.response) {
-        errorMsg = err.response.data?.detail || JSON.stringify(err.response.data)
-      } else if (err.request) {
-        errorMsg = 'No response from server'
-      } else {
-        errorMsg = err.message
-      }
-      alert('Ошибка при обновлении роли: ' + errorMsg)
+      alert('Ошибка при обновлении роли')
     }
   }
 
   const updateSpecialization = async (userId, specialization) => {
-    console.log('updateSpecialization called:', userId, specialization)
-    const value = specialization === '' ? null : specialization
     try {
-      console.log('Sending PATCH request to:', `/admin/users/${userId}/specialization`, 'with value:', value)
-      const res = await adminApi.updateUserSpecialization(userId, value)
-      console.log('updateSpecialization response:', res)
-      console.log('Updated user data:', res.data)
-      window.location.reload()
+      await adminApi.updateUserSpecialization(userId, specialization || null)
+      loadData()
     } catch (err) {
       console.error('Specialization update error:', err)
-      let errorMsg = 'Unknown error'
-      if (err.response) {
-        errorMsg = err.response.data?.detail || JSON.stringify(err.response.data)
-      } else if (err.request) {
-        errorMsg = 'No response from server'
-      } else {
-        errorMsg = err.message
-      }
-      alert('Ошибка при обновлении специализации: ' + errorMsg)
+      alert('Ошибка при обновлении специализации')
     }
   }
 
@@ -175,7 +156,20 @@ export default function AdminDashboard() {
     }
   }
 
-  if (loading) return <div className="page">Загрузка...</div>
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="page-loading">Загрузка...</div>
+      </div>
+    )
+  }
+
+  const adminStats = {
+    users_count: stats?.users || 0,
+    courses_count: stats?.courses || 0,
+    active_users: stats?.active_users || 0,
+    tests_completed: quizResults.length || 0,
+  }
 
   return (
     <div className="page">
@@ -183,254 +177,176 @@ export default function AdminDashboard() {
         <h1>Панель администратора</h1>
       </div>
 
-      <div className="courses-filter" ref={tabsRef}>
-        <button 
-          className={`filter-pill ${activeTab === 'stats' ? 'active' : ''}`}
-          onClick={() => setActiveTab('stats')}
-        >
-          Статистика
-        </button>
-        <button 
-          className={`filter-pill ${activeTab === 'users' ? 'active' : ''}`}
-          onClick={() => setActiveTab('users')}
-        >
-          Пользователи
-        </button>
-        <button 
-          className={`filter-pill ${activeTab === 'quiz-results' ? 'active' : ''}`}
-          onClick={() => setActiveTab('quiz-results')}
-        >
-          Результаты тестов
-        </button>
-      </div>
+      <Tabs tabs={TABS} activeTab={activeTab} onChange={setActiveTab} />
 
       {activeTab === 'stats' && stats && (
         <>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-value">{stats.users}</div>
-              <div className="stat-label">Всего пользователей</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value">{stats.active_users}</div>
-              <div className="stat-label">Активных пользователей</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value">{stats.courses}</div>
-              <div className="stat-label">Курсов</div>
-            </div>
-            <div className="stat-card">
-              <div className="stat-value">{stats.enrollments}</div>
-              <div className="stat-label">Записей на курсы</div>
-            </div>
-          </div>
+          <AdminStatsRow stats={adminStats} />
           <StatsCharts stats={stats} quizResults={quizResults} />
         </>
       )}
 
       {activeTab === 'users' && (
-        <div className="users-table">
-          <div className="table-actions">
-            <button className="btn btn-secondary" onClick={handleExportUsers}>
-              📥 Экспорт CSV
-            </button>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Имя пользователя</th>
-                <th>Email</th>
-                <th>Роль</th>
-                <th>Специальность</th>
-                <th>Статус</th>
-                <th>Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(user => (
-                <tr key={user.id} className={!user.is_active ? 'blocked-row' : ''}>
-                  <td>{user.id}</td>
-                  <td>{user.username}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <select 
-                      className="admin-table-select"
-                      value={user.role}
-                      onChange={(e) => updateRole(user.id, e.target.value)}
-                    >
-                      <option value="student">Student</option>
-                      <option value="teacher">Teacher</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                  </td>
-                  <td>
-                    <select 
-                      className="admin-table-select"
-                      value={user.specialization || ''}
-                      onChange={(e) => updateSpecialization(user.id, e.target.value || null)}
-                    >
-                      <option value="">-</option>
-                      <option value="dentist">Dentist</option>
-                      <option value="assistant">Assistant</option>
-                      <option value="technician">Technician</option>
-                      <option value="clinic_admin">Clinic Admin</option>
-                    </select>
-                  </td>
-                  <td>
-                    <span className={user.is_active ? 'status-active' : 'status-blocked'}>
-                      {user.is_active ? 'Активен' : 'Заблокирован'}
-                    </span>
-                  </td>
-                  <td>
-                    <button 
-                      className="btn btn-sm"
-                      onClick={() => toggleBlock(user.id)}
-                    >
-                      {user.is_active ? 'Блокировать' : 'Разблокировать'}
-                    </button>
-                    <button 
-                      className="btn btn-sm btn-danger"
-                      onClick={() => deleteUser(user.id)}
-                    >
-                      Удалить
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <AdminToolbar
+            filters={filters}
+            onChange={setFilters}
+            onReset={() => setFilters({ search: '', role: '', specialization: '', status: '' })}
+            onExport={handleExportUsers}
+          />
+          <UsersTable
+            users={filteredUsers}
+            isLoading={loading}
+            pagination={pagination}
+            onPageChange={(page) => setPagination(p => ({ ...p, page }))}
+          />
+        </>
       )}
 
       {activeTab === 'quiz-results' && (
         <div className="quiz-results-section">
-          <div className="table-actions">
-            <button className="btn btn-secondary" onClick={handleExportQuizResults}>
-              📥 Экспорт CSV
-            </button>
-          </div>
-          <div className="quiz-results-filters">
-            <input
-              type="text"
-              placeholder="Фильтр по пользователю..."
-              value={quizFilter.user}
-              onChange={(e) => setQuizFilter({ ...quizFilter, user: e.target.value })}
-              className="filter-input"
-            />
-            <input
-              type="text"
-              placeholder="Фильтр по курсу..."
-              value={quizFilter.course}
-              onChange={(e) => setQuizFilter({ ...quizFilter, course: e.target.value })}
-              className="filter-input"
-            />
+          <div className="table-actions" style={{ marginBottom: '1rem' }}>
+            <Button variant="secondary" onClick={handleExportQuizResults}>
+              <Download size={16} /> Экспорт CSV
+            </Button>
           </div>
           
-          {quizResults.length === 0 ? (
-            <p className="empty-message">Пока нет результатов тестов</p>
-          ) : (
-            <div className="quiz-results-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Пользователь</th>
-                    <th>Курс</th>
-                    <th>Урок</th>
-                    <th>Результат</th>
-                    <th>Статус</th>
-                    <th>Дата</th>
-                    <th>Детали</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {quizResults
-                    .filter(r => 
-                      (!quizFilter.user || 
-                        r.username.toLowerCase().includes(quizFilter.user.toLowerCase()) ||
-                        r.full_name?.toLowerCase().includes(quizFilter.user.toLowerCase())) &&
-                      (!quizFilter.course || 
-                        r.course_title.toLowerCase().includes(quizFilter.course.toLowerCase()))
-                    )
-                    .map(result => (
-                    <tr key={result.attempt_id}>
-                      <td>
-                        <div className="user-cell">
-                          <strong>{result.full_name || result.username}</strong>
-                          <small>@{result.username}</small>
-                        </div>
-                      </td>
-                      <td>{result.course_title}</td>
-                      <td>
-                        <div className="lesson-cell">
-                          <strong>{result.lesson_title}</strong>
-                          <small>{result.section_title} / {result.chapter_title}</small>
-                        </div>
-                      </td>
-                      <td>
-                        <span className={`score score-${result.score >= 70 ? 'pass' : 'fail'}`}>
-                          {result.score}%
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`status-badge ${result.passed ? 'passed' : 'failed'}`}>
-                          {result.passed ? 'Пройден' : 'Не пройден'}
-                        </span>
-                      </td>
-                      <td>{result.completed_at ? new Date(result.completed_at).toLocaleString('ru-RU') : '-'}</td>
-                      <td>
-                        <button 
-                          className="btn btn-sm"
-                          onClick={() => setSelectedResult(result)}
-                        >
-                          Подробнее
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <Card padding="md" style={{ marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <input
+                type="text"
+                placeholder="Фильтр по пользователю..."
+                value={quizFilter.user}
+                onChange={(e) => setQuizFilter({ ...quizFilter, user: e.target.value })}
+                className="toolbar-input"
+                style={{ flex: 1 }}
+              />
+              <input
+                type="text"
+                placeholder="Фильтр по курсу..."
+                value={quizFilter.course}
+                onChange={(e) => setQuizFilter({ ...quizFilter, course: e.target.value })}
+                className="toolbar-input"
+                style={{ flex: 1 }}
+              />
             </div>
+          </Card>
+          
+          {filteredQuizResults.length === 0 ? (
+            <Card padding="lg">
+              <div className="empty-state">
+                <ClipboardList size={48} />
+                <h3 className="empty-title">Нет результатов</h3>
+                <p className="empty-description">Пока нет результатов тестов</p>
+              </div>
+            </Card>
+          ) : (
+            <Card padding="none">
+              <div className="table-wrapper">
+                <table className="users-table">
+                  <thead>
+                    <tr>
+                      <th>Пользователь</th>
+                      <th>Курс</th>
+                      <th>Урок</th>
+                      <th>Результат</th>
+                      <th>Статус</th>
+                      <th>Дата</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredQuizResults.map(result => (
+                      <tr key={result.attempt_id}>
+                        <td>
+                          <div className="user-info">
+                            <span className="user-name">{result.full_name || result.username}</span>
+                            <span className="user-email">@{result.username}</span>
+                          </div>
+                        </td>
+                        <td>{result.course_title}</td>
+                        <td>
+                          <div style={{ fontSize: '0.875rem' }}>
+                            <strong>{result.lesson_title}</strong>
+                            <br />
+                            <small style={{ color: 'var(--color-text-secondary)' }}>
+                              {result.section_title} / {result.chapter_title}
+                            </small>
+                          </div>
+                        </td>
+                        <td>
+                          <Badge variant={result.score >= 70 ? 'success' : 'danger'}>
+                            {result.score}%
+                          </Badge>
+                        </td>
+                        <td>
+                          <Badge variant={result.passed ? 'primary' : 'default'}>
+                            {result.passed ? 'Пройден' : 'Не пройден'}
+                          </Badge>
+                        </td>
+                        <td style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                          {result.completed_at ? new Date(result.completed_at).toLocaleString('ru-RU') : '-'}
+                        </td>
+                        <td>
+                          <Button variant="secondary" size="sm" onClick={() => setSelectedResult(result)}>
+                            Подробнее
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
           )}
         </div>
       )}
 
       {selectedResult && (
         <div className="modal-overlay" onClick={() => setSelectedResult(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
+          <div className="modal modal-lg" onClick={e => e.stopPropagation()} style={{ maxWidth: '700px' }}>
             <div className="modal-header">
-              <h2>Детали теста</h2>
+              <h2 className="modal-title">Детали теста</h2>
               <button className="modal-close" onClick={() => setSelectedResult(null)}>×</button>
             </div>
             <div className="modal-body">
-              <div className="result-summary">
+              <div style={{ marginBottom: '1.5rem' }}>
                 <p><strong>Пользователь:</strong> {selectedResult.full_name || selectedResult.username} ({selectedResult.user_email})</p>
                 <p><strong>Курс:</strong> {selectedResult.course_title}</p>
                 <p><strong>Раздел:</strong> {selectedResult.section_title}</p>
                 <p><strong>Глава:</strong> {selectedResult.chapter_title}</p>
                 <p><strong>Урок:</strong> {selectedResult.lesson_title}</p>
                 <p><strong>Тест:</strong> {selectedResult.quiz_title}</p>
-                <p><strong>Результат:</strong> <span className={`score score-${selectedResult.score >= 70 ? 'pass' : 'fail'}`}>{selectedResult.score}%</span></p>
+                <p>
+                  <strong>Результат:</strong>{' '}
+                  <Badge variant={selectedResult.score >= 70 ? 'success' : 'danger'}>
+                    {selectedResult.score}%
+                  </Badge>
+                </p>
               </div>
               
-              <h3>Ответы на вопросы:</h3>
-              <div className="question-results">
+              <h3 style={{ marginBottom: '1rem' }}>Ответы на вопросы:</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {selectedResult.question_results?.map((q, idx) => (
-                  <div key={q.question_id} className={`question-result ${q.is_correct ? 'correct' : 'wrong'}`}>
-                    <div className="question-header">
-                      <span className="question-number">Вопрос {idx + 1}</span>
-                      <span className={`question-status ${q.is_correct ? 'correct' : 'wrong'}`}>
+                  <Card 
+                    key={q.question_id} 
+                    padding="md"
+                    className={q.is_correct ? 'correct-answer-card' : 'wrong-answer-card'}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <strong>Вопрос {idx + 1}</strong>
+                      <Badge variant={q.is_correct ? 'success' : 'danger'}>
                         {q.is_correct ? '✓ Правильно' : '✗ Неправильно'}
-                      </span>
+                      </Badge>
                     </div>
-                    <p className="question-text">{q.question_text}</p>
+                    <p>{q.question_text}</p>
                     {!q.is_correct && (
-                      <div className="answer-comparison">
-                        <p><span className="wrong-answer">Ответ пользователя:</span> {q.user_answer_text}</p>
-                        <p><span className="correct-answer">Правильный ответ:</span> {q.correct_answer_text}</p>
+                      <div style={{ marginTop: '0.75rem', fontSize: '0.875rem' }}>
+                        <p><span style={{ color: '#ef4444' }}>Ответ пользователя:</span> {q.user_answer_text}</p>
+                        <p><span style={{ color: '#10b981' }}>Правильный ответ:</span> {q.correct_answer_text}</p>
                       </div>
                     )}
-                  </div>
+                  </Card>
                 ))}
               </div>
             </div>

@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { 
+  CheckCircle, XCircle, MessageSquare, Send, Plus, Trash2, 
+  ChevronLeft, ChevronRight, FileQuestion, Award, RotateCcw, Edit
+} from 'lucide-react'
 import { coursesApi, quizApi, authApi, commentsApi } from '../api'
 import { useToast, ToastContainer } from '../components/Toast'
+import { Card, Badge, Button } from '../components/ui/index.jsx'
 
 function LessonView() {
   const { courseId, lessonId, contentId } = useParams()
@@ -174,7 +179,9 @@ function LessonView() {
 
   return (
     <div className="lesson-view">
-      <Link to={`/courses/${courseId}`} className="back-link">← Назад к курсу</Link>
+      <Link to={`/courses/${courseId}`} className="back-link" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem', color: 'var(--color-primary)' }}>
+        <ChevronLeft size={20} /> Назад к курсу
+      </Link>
       
       <h1>{lesson.title}</h1>
       
@@ -211,10 +218,17 @@ function LessonView() {
           {quiz.description && <p>{quiz.description}</p>}
           
           {attempt && submitted && (
-            <div className={`attempt-result ${attempt.passed ? 'passed' : 'failed'}`}>
-              <h3>Результат: {attempt.score}%</h3>
-              <p>{attempt.passed ? 'Поздравляем! Тест пройден!' : 'Тест не пройден. Попробуйте ещё раз.'}</p>
-            </div>
+            <Card padding="md" className={`attempt-result ${attempt.passed ? 'passed' : 'failed'}`} style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                {attempt.passed ? (
+                  <CheckCircle size={32} style={{ color: '#10b981' }} />
+                ) : (
+                  <XCircle size={32} style={{ color: '#ef4444' }} />
+                )}
+                <h3 style={{ margin: 0 }}>Результат: {attempt.score}%</h3>
+              </div>
+              <p style={{ margin: 0 }}>{attempt.passed ? 'Поздравляем! Тест пройден!' : 'Тест не пройден. Попробуйте ещё раз.'}</p>
+            </Card>
           )}
 
           {!submitted && (
@@ -255,9 +269,9 @@ function LessonView() {
           )}
 
           {submitted && (
-            <button onClick={() => { setSubmitted(false); setSelectedAnswers({}) }} className="btn btn-secondary">
-              Пройти заново
-            </button>
+            <Button variant="secondary" onClick={() => { setSubmitted(false); setSelectedAnswers({}) }}>
+              <RotateCcw size={16} /> Пройти заново
+            </Button>
           )}
         </div>
       )}
@@ -342,43 +356,52 @@ function LessonView() {
       )}
 
       <div className="comments-section">
-        <button onClick={() => setShowComments(!showComments)} className="btn btn-secondary">
-          💬 Комментарии ({comments.length})
-        </button>
+        <Button variant="secondary" onClick={() => setShowComments(!showComments)}>
+          <MessageSquare size={16} /> Комментарии ({comments.length})
+        </Button>
         
         {showComments && (
-          <div className="comments-list">
+          <Card padding="md" style={{ marginTop: '1rem' }}>
             {currentUser && (
-              <form onSubmit={handleCommentSubmit} className="comment-form">
+              <form onSubmit={handleCommentSubmit} className="comment-form" style={{ marginBottom: '1.5rem' }}>
                 <textarea
                   placeholder="Написать комментарий..."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   rows={3}
+                  style={{ width: '100%', padding: '0.75rem', border: '1px solid var(--color-border)', borderRadius: '8px', marginBottom: '0.75rem', fontSize: '0.9rem' }}
                 />
-                <button type="submit" className="btn btn-primary">Отправить</button>
+                <Button type="submit">
+                  <Send size={16} /> Отправить
+                </Button>
               </form>
             )}
             
-            {comments.map(comment => (
-              <div key={comment.id} className="comment-item">
-                <div className="comment-header">
-                  <span className="comment-author">{comment.user?.username || 'User'}</span>
-                  <span className="comment-date">
-                    {new Date(comment.created_at).toLocaleString('ru-RU')}
-                  </span>
-                </div>
-                <p className="comment-content">{comment.content}</p>
-                {currentUser && (currentUser.id === comment.user_id || currentUser.is_superuser) && (
-                  <button onClick={() => handleDeleteComment(comment.id)} className="btn-delete">
-                    Удалить
-                  </button>
-                )}
+            {comments.length === 0 ? (
+              <p className="no-comments" style={{ textAlign: 'center', color: 'var(--color-text-secondary)', padding: '2rem' }}>
+                Пока нет комментариев. Будьте первым!
+              </p>
+            ) : (
+              <div className="comments-list">
+                {comments.map(comment => (
+                  <div key={comment.id} className="comment-item" style={{ padding: '1rem 0', borderBottom: '1px solid var(--color-border)' }}>
+                    <div className="comment-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                      <span className="comment-author" style={{ fontWeight: 600 }}>{comment.user?.username || 'User'}</span>
+                      <span className="comment-date" style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
+                        {new Date(comment.created_at).toLocaleString('ru-RU')}
+                      </span>
+                    </div>
+                    <p className="comment-content" style={{ margin: 0, lineHeight: 1.5 }}>{comment.content}</p>
+                    {currentUser && (currentUser.id === comment.user_id || currentUser.is_superuser) && (
+                      <button onClick={() => handleDeleteComment(comment.id)} className="btn-delete" style={{ marginTop: '0.5rem', background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '0.8rem' }}>
+                        <Trash2 size={14} /> Удалить
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-            
-            {comments.length === 0 && <p className="no-comments">Пока нет комментариев. Будьте первым!</p>}
-          </div>
+            )}
+          </Card>
         )}
       </div>
       

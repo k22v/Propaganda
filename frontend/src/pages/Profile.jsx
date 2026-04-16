@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { authApi } from '../api'
-import { ToastContainer, useToast, withToastHandler } from '../components/Toast'
+import { ToastContainer, useToast } from '../components/Toast'
+import { Card, Badge, Button, ProgressBar, Avatar, Tabs } from '../components/ui/index.jsx'
+import { ProfileSidebar, ProfileStatsGrid, ActivityFeed } from '../components/ProfileComponents'
+import './Profile.css'
 
 const ANIMALS = [
   { id: 1, emoji: '🦊', name: 'Лиса' },
@@ -22,12 +25,9 @@ const ANIMALS = [
   { id: 16, emoji: '🦅', name: 'Орел' },
 ]
 
-const SPECIALIZATIONS = [
-  { value: '', label: 'Не выбрана' },
-  { value: 'dentist', label: 'Стоматолог' },
-  { value: 'assistant', label: 'Ассистент стоматолога' },
-  { value: 'technician', label: 'Зубной техник' },
-  { value: 'clinic_admin', label: 'Администратор клиники' },
+const TABS = [
+  { id: 'profile', label: 'Профиль' },
+  { id: 'activity', label: 'Активность' },
 ]
 
 function Profile() {
@@ -36,11 +36,12 @@ function Profile() {
   const [user, setUser] = useState(null)
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [selectedTab, setSelectedTab] = useState('profile')
   const [selectedAvatar, setSelectedAvatar] = useState(null)
   const [fullName, setFullName] = useState('')
-  const [specialization, setSpecialization] = useState('')
   const [showPasswordForm, setShowPasswordForm] = useState(false)
   const [passwordData, setPasswordData] = useState({ current: '', newPass: '', confirm: '' })
+  const [editing, setEditing] = useState(false)
 
   useEffect(() => {
     loadUser()
@@ -53,8 +54,7 @@ function Profile() {
       setUser(data)
       setSelectedAvatar(data.avatar_id)
       setFullName(data.full_name || '')
-      setSpecialization(data.specialization || '')
-    } catch (err) {
+    } catch {
       showToast('Ошибка загрузки профиля', 'error')
     } finally {
       setLoading(false)
@@ -65,39 +65,28 @@ function Profile() {
     try {
       const { data } = await authApi.getProfileStats()
       setStats(data)
-      console.log('Stats loaded:', data)
     } catch (err) {
-      console.error('Failed to load stats', err.response?.data || err.message)
+      console.error('Failed to load stats', err)
     }
   }
 
-  const wrappedApi = withToastHandler({
-    saveProfile: async () => {
-      const hasNameChanged = fullName !== (user.full_name || '')
-      const hasAvatarChanged = selectedAvatar !== user.avatar_id
-
-      if (!hasNameChanged && !hasAvatarChanged) {
-        showToast('Нечего сохранять', 'info')
-        return
+  const handleSave = async () => {
+    try {
+      if (fullName !== (user.full_name || '')) {
+        await authApi.updateProfile({ full_name: fullName })
       }
-
-      if (hasNameChanged) {
-        const res = await authApi.updateProfile({
-          full_name: fullName,
-        })
-        setUser(prev => ({ ...prev, full_name: fullName }))
-      }
-
-      if (hasAvatarChanged) {
+      if (selectedAvatar !== user.avatar_id) {
         await authApi.updateAvatar(selectedAvatar)
         window.location.reload()
+        return
       }
-
       showToast('Профиль сохранён', 'success')
+      setEditing(false)
+      loadUser()
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Ошибка сохранения', 'error')
     }
-  }, showToast)
-
-  const handleSave = () => wrappedApi.saveProfile()
+  }
 
   const handleChangePassword = async (e) => {
     e.preventDefault()
@@ -122,172 +111,188 @@ function Profile() {
     }
   }
 
-  if (loading) return <div className="loading">Загрузка...</div>
+  if (loading) {
+    return (
+      <div className="profile-page">
+        <div className="profile-loading">
+          <div className="loader-spinner"></div>
+        </div>
+      </div>
+    )
+  }
+
+  const activities = stats?.reviews?.map(r => ({
+    id: r.id,
+    type: 'comment_added',
+    message: `Оставлен отзыв: ${r.course_title}`,
+    created_at: r.created_at
+  })) || []
 
   return (
     <div className="profile-page">
       <ToastContainer toast={toast} onClose={closeToast} />
-      <div className="profile-card">
-        <h1>Профиль</h1>
-        
-        <div className="profile-avatar-large">
-          {selectedAvatar ? (
-            ANIMALS.find(a => a.id === selectedAvatar)?.emoji || '👤'
-          ) : (
-            '👤'
-          )}
+      
+      <div className="profile-layout">
+        <div className="profile-left">
+          <ProfileSidebar 
+            user={user} 
+            onEdit={() => setEditing(true)}
+            onPassword={() => setShowPasswordForm(!showPasswordForm)}
+          />
         </div>
 
-        <div className="profile-form">
-          <div className="form-group">
-            <label>Имя пользователя</label>
-            <input type="text" value={user?.username} disabled />
-          </div>
-          
-          <div className="form-group">
-            <label>Полное имя</label>
-            <input 
-              type="text" 
-              value={fullName} 
-              onChange={(e) => setFullName(e.target.value)}
-              placeholder="Введите ваше имя"
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Email</label>
-            <input type="email" value={user?.email} disabled />
-          </div>
+        <div className="profile-right">
+          <Tabs tabs={TABS} activeTab={selectedTab} onChange={setSelectedTab} />
 
-          <div className="form-group">
-            <label>Специализация</label>
-            <select value={specialization} disabled>
-              {SPECIALIZATIONS.map(spec => (
-                <option key={spec.value} value={spec.value}>{spec.label}</option>
-              ))}
-            </select>
-            <small style={{color: '#666'}}>Изменить специализацию может только администратор</small>
-          </div>
-
-          <div className="form-group">
-            <label>Роль</label>
-            <input 
-              type="text" 
-              value={user?.role === 'admin' ? 'Администратор' : user?.role === 'teacher' ? 'Преподаватель' : 'Студент'} 
-              disabled 
-            />
-          </div>
-
-          {stats !== null && (
-            <div className="profile-stats">
-              <h3>📊 Моя статистика</h3>
-              <div className="stats-grid">
-                <div className="stat-card">
-                  <span className="stat-value">{stats.courses_count}</span>
-                  <span className="stat-label">Курсов</span>
-                </div>
-                <div className="stat-card">
-                  <span className="stat-value">{stats.completed_count}</span>
-                  <span className="stat-label">Завершено</span>
-                </div>
-                <div className="stat-card">
-                  <span className="stat-value">{stats.reviews_count}</span>
-                  <span className="stat-label">Отзывов</span>
-                </div>
-              </div>
-              <p className="profile-date">Дата регистрации: {stats.created_at ? new Date(stats.created_at).toLocaleDateString('ru-RU') : 'N/A'}</p>
-              <p className="profile-date">Последний вход: {stats.last_login ? new Date(stats.last_login).toLocaleString('ru-RU') : 'Никогда'}</p>
-            </div>
-          )}
-
-          {stats !== null && stats.reviews && stats.reviews.length > 0 && (
-            <div className="profile-reviews">
-              <h3>📝 Мои отзывы</h3>
-              <div className="reviews-list">
-                {stats.reviews.map(review => (
-                  <div key={review.id} className="review-item">
-                    <div className="review-header">
-                      <span className="review-course">{review.course_title}</span>
-                      <span className="review-rating">{'★'.repeat(review.rating)}{'☆'.repeat(5-review.rating)}</span>
+          {selectedTab === 'profile' && (
+            <>
+              <Card className="profile-details-card" padding="lg">
+                <div className="profile-details-header">
+                  <h2>Личные данные</h2>
+                  {!editing ? (
+                    <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+                      Редактировать
+                    </Button>
+                  ) : (
+                    <div className="edit-actions">
+                      <Button size="sm" onClick={handleSave}>Сохранить</Button>
+                      <Button variant="ghost" size="sm" onClick={() => setEditing(false)}>Отмена</Button>
                     </div>
-                    {review.text && <p className="review-text">{review.text}</p>}
-                    <span className="review-date">{review.created_at ? new Date(review.created_at).toLocaleDateString('ru-RU') : ''}</span>
+                  )}
+                </div>
+
+                <div className="profile-details-grid">
+                  <div className="detail-item">
+                    <label>Имя пользователя</label>
+                    <span>{user?.username}</span>
                   </div>
-                ))}
-              </div>
-            </div>
+                  
+                  <div className="detail-item">
+                    <label>Полное имя</label>
+                    {editing ? (
+                      <input 
+                        type="text" 
+                        value={fullName} 
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="form-input"
+                      />
+                    ) : (
+                      <span>{user?.full_name || 'Не указано'}</span>
+                    )}
+                  </div>
+
+                  <div className="detail-item">
+                    <label>Email</label>
+                    <span>{user?.email}</span>
+                  </div>
+
+                  <div className="detail-item">
+                    <label>Специализация</label>
+                    <Badge variant="primary">{getSpecialtyLabel(user?.specialization) || 'Не выбрана'}</Badge>
+                  </div>
+
+                  <div className="detail-item">
+                    <label>Роль</label>
+                    <Badge variant={user?.role === 'admin' ? 'danger' : 'default'}>
+                      {getRoleLabel(user?.role)}
+                    </Badge>
+                  </div>
+                </div>
+              </Card>
+
+              <ProfileStatsGrid stats={stats} />
+
+              {showPasswordForm && (
+                <Card className="password-card" padding="lg">
+                  <h3>Смена пароля</h3>
+                  <form onSubmit={handleChangePassword} className="password-form">
+                    <div className="form-group">
+                      <label>Текущий пароль</label>
+                      <input
+                        type="password"
+                        value={passwordData.current}
+                        onChange={(e) => setPasswordData({...passwordData, current: e.target.value})}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Новый пароль</label>
+                      <input
+                        type="password"
+                        value={passwordData.newPass}
+                        onChange={(e) => setPasswordData({...passwordData, newPass: e.target.value})}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Подтвердите пароль</label>
+                      <input
+                        type="password"
+                        value={passwordData.confirm}
+                        onChange={(e) => setPasswordData({...passwordData, confirm: e.target.value})}
+                        className="form-input"
+                        required
+                      />
+                    </div>
+                    <div className="form-actions">
+                      <Button type="submit">Сохранить пароль</Button>
+                      <Button variant="ghost" type="button" onClick={() => setShowPasswordForm(false)}>
+                        Отмена
+                      </Button>
+                    </div>
+                  </form>
+                </Card>
+              )}
+
+              <Card className="avatar-card" padding="lg">
+                <h3>Выберите аватар</h3>
+                <div className="avatar-selection">
+                  {ANIMALS.map(animal => (
+                    <button
+                      key={animal.id}
+                      className={`avatar-btn ${selectedAvatar === animal.id ? 'selected' : ''}`}
+                      onClick={() => {
+                        setSelectedAvatar(animal.id)
+                        setEditing(true)
+                      }}
+                      title={animal.name}
+                    >
+                      {animal.emoji}
+                    </button>
+                  ))}
+                </div>
+              </Card>
+            </>
           )}
-        </div>
 
-        <div className="password-section">
-          <button 
-            className="btn btn-secondary" 
-            onClick={() => setShowPasswordForm(!showPasswordForm)}
-          >
-            {showPasswordForm ? 'Отмена' : '🔒 Сменить пароль'}
-          </button>
-          
-          {showPasswordForm && (
-            <form className="password-form" onSubmit={handleChangePassword}>
-              <div className="form-group">
-                <label>Текущий пароль</label>
-                <input
-                  type="password"
-                  value={passwordData.current}
-                  onChange={(e) => setPasswordData({...passwordData, current: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Новый пароль</label>
-                <input
-                  type="password"
-                  value={passwordData.newPass}
-                  onChange={(e) => setPasswordData({...passwordData, newPass: e.target.value})}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Подтвердите пароль</label>
-                <input
-                  type="password"
-                  value={passwordData.confirm}
-                  onChange={(e) => setPasswordData({...passwordData, confirm: e.target.value})}
-                  required
-                />
-              </div>
-              <button type="submit" className="btn btn-primary">Сохранить пароль</button>
-            </form>
+          {selectedTab === 'activity' && (
+            <ActivityFeed activities={activities} />
           )}
-        </div>
-
-        <div className="avatar-selection">
-          <h3>Выберите аватар</h3>
-          <div className="avatar-grid">
-            {ANIMALS.map(animal => (
-              <button
-                key={animal.id}
-                className={`avatar-btn ${selectedAvatar === animal.id ? 'selected' : ''}`}
-                onClick={() => setSelectedAvatar(animal.id)}
-                title={animal.name}
-              >
-                {animal.emoji}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="profile-actions">
-          <button onClick={handleSave} className="btn btn-primary">
-            Сохранить
-          </button>
-          <button onClick={() => navigate('/my-courses')} className="btn btn-secondary">
-            Назад к курсам
-          </button>
         </div>
       </div>
     </div>
   )
+}
+
+function getSpecialtyLabel(specialization) {
+  const labels = {
+    dentist: 'Стоматолог',
+    assistant: 'Ассистент',
+    technician: 'Техник',
+    clinic_admin: 'Администратор клиники',
+  }
+  return labels[specialization] || specialization
+}
+
+function getRoleLabel(role) {
+  const labels = {
+    admin: 'Администратор',
+    teacher: 'Преподаватель',
+    student: 'Студент',
+  }
+  return labels[role] || role
 }
 
 export default Profile

@@ -1,11 +1,28 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import { 
+  Clock, FileText, Image, Video, List, MousePointer, Minus, Paperclip,
+  ChevronUp, ChevronDown, X, Plus, BookOpen, CheckCircle, Quote,
+  Lock, Calendar, Edit, Eye, EyeOff, ClipboardList, ArrowLeft
+} from 'lucide-react'
 import { coursesApi, authApi } from '../api'
 import ContentModal from '../components/ContentModal'
 import Reviews from '../components/Reviews'
 import { ToastContainer, useToast, withToastHandler } from '../components/Toast'
+import { Card, Badge, Button } from '../components/ui/index.jsx'
 import '../components/CourseDetail.css'
 import '../components/ContentModal.css'
+
+const CONTENT_ICONS = {
+  text: FileText,
+  quote: Quote,
+  image: Image,
+  video: Video,
+  list: List,
+  interactive: MousePointer,
+  separator: Minus,
+  file: Paperclip,
+}
 
 function CountdownTimer({ startDate }) {
   const [timeLeft, setTimeLeft] = useState(null)
@@ -32,7 +49,7 @@ function CountdownTimer({ startDate }) {
 
   return (
     <div className="countdown-timer">
-      <p>⏰ До начала курса:</p>
+      <p><Clock size={16} style={{ display: 'inline', marginRight: '0.5rem' }} />До начала курса:</p>
       <div className="countdown-days">
         {timeLeft.days > 0 && <span>{timeLeft.days} дн. </span>}
         {timeLeft.hours > 0 && <span>{timeLeft.hours} ч. </span>}
@@ -246,15 +263,19 @@ function CourseDetail() {
       )}
       <div className="course-header">
         <h1>{course.title}</h1>
-        {canEdit && (
-          <div className="course-actions">
-            <button onClick={handleTogglePublish} className="btn btn-primary">
-              {course.is_published ? 'Снять с публикации' : 'Опубликовать'}
-            </button>
-            <button onClick={() => navigate(`/courses/${id}/practice`)} className="btn btn-secondary">📝 Задачи</button>
-            <button onClick={() => navigate('/my-courses')} className="btn btn-secondary">К моим курсам</button>
-          </div>
-        )}
+      {canEdit && (
+        <div className="course-actions">
+          <Button onClick={handleTogglePublish}>
+            {course.is_published ? <><EyeOff size={16} /> Снять с публикации</> : <><Eye size={16} /> Опубликовать</>}
+          </Button>
+          <Button variant="secondary" onClick={() => navigate(`/courses/${id}/practice`)}>
+            <ClipboardList size={16} /> Задачи
+          </Button>
+          <Button variant="secondary" onClick={() => navigate('/my-courses')}>
+            <ArrowLeft size={16} /> К моим курсам
+          </Button>
+        </div>
+      )}
       </div>
 
       {course.description && <p className="course-desc">{course.description}</p>}
@@ -262,8 +283,10 @@ function CourseDetail() {
       {canEdit && (
         <div className="editor-section">
           <div className="section-header">
-            <h2>Структура курса</h2>
-            <button onClick={() => setShowAddSection(true)} className="btn btn-primary">+ Раздел</button>
+            <h2><BookOpen size={20} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />Структура курса</h2>
+            <Button onClick={() => setShowAddSection(true)}>
+              <Plus size={16} /> Раздел
+            </Button>
           </div>
 
           {showAddSection && (
@@ -271,8 +294,8 @@ function CourseDetail() {
               <input type="text" placeholder="Название раздела" value={newSection.title} onChange={e => setNewSection({...newSection, title: e.target.value})} />
               <textarea placeholder="Описание" value={newSection.description} onChange={e => setNewSection({...newSection, description: e.target.value})} />
               <div className="add-form-actions">
-                <button onClick={handleAddSection} className="btn btn-primary">Добавить</button>
-                <button onClick={() => setShowAddSection(false)} className="btn btn-secondary">Отмена</button>
+                <Button onClick={handleAddSection}>Добавить</Button>
+                <Button variant="secondary" onClick={() => setShowAddSection(false)}>Отмена</Button>
               </div>
             </div>
           )}
@@ -283,9 +306,9 @@ function CourseDetail() {
                 <div className="section-title-row">
                   <h3>{section.title}</h3>
                   <div className="move-buttons">
-                    <button className="btn-move" onClick={() => moveSection(section.id, 'up')} disabled={sIdx === 0}>⬆️</button>
-                    <button className="btn-move" onClick={() => moveSection(section.id, 'down')} disabled={sIdx === course.sections.length - 1}>⬇️</button>
-                    <button className="btn-delete" onClick={() => handleDeleteSection(section.id)}>×</button>
+                    <button className="btn-move" onClick={() => moveSection(section.id, 'up')} disabled={sIdx === 0}><ChevronUp size={16} /></button>
+                    <button className="btn-move" onClick={() => moveSection(section.id, 'down')} disabled={sIdx === course.sections.length - 1}><ChevronDown size={16} /></button>
+                    <button className="btn-delete" onClick={() => handleDeleteSection(section.id)}><X size={16} /></button>
                   </div>
                 </div>
                 {section.description && <p className="section-desc">{section.description}</p>}
@@ -296,40 +319,34 @@ function CourseDetail() {
                       <div className="chapter-title-row">
                         <h4>{chapter.title}</h4>
                         <div className="move-buttons">
-                          <button className="btn-move" onClick={() => moveChapter(section.id, chapter.id, 'up')} disabled={cIdx === 0}>⬆️</button>
-                          <button className="btn-move" onClick={() => moveChapter(section.id, chapter.id, 'down')} disabled={cIdx === section.chapters.length - 1}>⬇️</button>
-                          <button className="btn-delete" onClick={() => handleDeleteChapter(chapter.id)}>×</button>
+                          <button className="btn-move" onClick={() => moveChapter(section.id, chapter.id, 'up')} disabled={cIdx === 0}><ChevronUp size={16} /></button>
+                          <button className="btn-move" onClick={() => moveChapter(section.id, chapter.id, 'down')} disabled={cIdx === section.chapters.length - 1}><ChevronDown size={16} /></button>
+                          <button className="btn-delete" onClick={() => handleDeleteChapter(chapter.id)}><X size={16} /></button>
                         </div>
                       </div>
                       
                       <div className="contents-list">
-                        {chapter.contents?.map((content, ctIdx) => (
-                          <Link key={content.id} to={`/courses/${id}/content/${content.id}`} className="content-item" style={{ textDecoration: 'none', color: 'inherit' }}>
-                            <span className="content-icon">
-                              {content.content_type === 'text' && '📝'}
-                              {content.content_type === 'quote' && '❝'}
-                              {content.content_type === 'image' && '🖼️'}
-                              {content.content_type === 'video' && '🎬'}
-                              {content.content_type === 'list' && '📋'}
-                              {content.content_type === 'interactive' && '🖱️'}
-                              {content.content_type === 'separator' && '➖'}
-                              {content.content_type === 'file' && '📎'}
-                            </span>
-                            <span className="content-title">{content.title}</span>
-                            <div className="move-buttons" onClick={e => e.preventDefault()}>
-                              <button className="btn-move" onClick={() => moveContent(chapter.id, content.id, 'up')} disabled={ctIdx === 0}>⬆️</button>
-                              <button className="btn-move" onClick={() => moveContent(chapter.id, content.id, 'down')} disabled={ctIdx === chapter.contents.length - 1}>⬇️</button>
-                              <button className="btn-delete" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteContent(content.id) }}>×</button>
-                            </div>
-                          </Link>
-                        ))}
-                        <button className="btn-add-content" onClick={() => openContentModal(chapter.id)}>+ Добавить контент</button>
+                        {chapter.contents?.map((content, ctIdx) => {
+                          const IconComponent = CONTENT_ICONS[content.content_type] || FileText
+                          return (
+                            <Link key={content.id} to={`/courses/${id}/content/${content.id}`} className="content-item" style={{ textDecoration: 'none', color: 'inherit' }}>
+                              <span className="content-icon"><IconComponent size={16} /></span>
+                              <span className="content-title">{content.title}</span>
+                              <div className="move-buttons" onClick={e => e.preventDefault()}>
+                                <button className="btn-move" onClick={() => moveContent(chapter.id, content.id, 'up')} disabled={ctIdx === 0}><ChevronUp size={14} /></button>
+                                <button className="btn-move" onClick={() => moveContent(chapter.id, content.id, 'down')} disabled={ctIdx === chapter.contents.length - 1}><ChevronDown size={14} /></button>
+                                <button className="btn-delete" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleDeleteContent(content.id) }}><X size={14} /></button>
+                              </div>
+                            </Link>
+                          )
+                        })}
+                        <button className="btn-add-content" onClick={() => openContentModal(chapter.id)}><Plus size={14} /> Добавить контент</button>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <button className="btn-add-chapter" onClick={() => openAddChapterModal(section.id)}>+ Глава</button>
+                <button className="btn-add-chapter" onClick={() => openAddChapterModal(section.id)}><Plus size={14} /> Глава</button>
               </div>
             ))}
           </div>
@@ -341,66 +358,70 @@ function CourseDetail() {
           {course.description && <p className="course-desc">{course.description}</p>}
           
           {course.specializationError ? (
-            <div className="locked-message">
-              <p>⛔ {course.error || 'Доступ к этому курсу запрещён'}</p>
-              <Link to="/courses" className="btn btn-primary" style={{ marginTop: '1rem' }}>К курсам</Link>
-            </div>
+            <Card padding="lg">
+              <div className="locked-message">
+                <Lock size={48} style={{ color: '#ef4444', marginBottom: '1rem' }} />
+                <p>{course.error || 'Доступ к этому курсу запрещён'}</p>
+                <Button as={Link} to="/courses" style={{ marginTop: '1rem' }}>К курсам</Button>
+              </div>
+            </Card>
           ) : course.is_published ? (
             !currentUser ? (
-              <div className="locked-message">
-                <p>Войдите или зарегистрируйтесь для доступа к курсу</p>
-                <div className="locked-actions">
-                  <Link to="/login" className="btn btn-primary">Войти</Link>
-                  <Link to="/register" className="btn btn-secondary">Регистрация</Link>
-                </div>
-              </div>
-            ) : !course.is_enrolled ? (
-              <div className="locked-message">
-                {course.start_date && course.end_date && (
-                  <div className="course-dates">
-                    <p>📅 Период обучения: {new Date(course.start_date).toLocaleDateString('ru-RU')} - {new Date(course.end_date).toLocaleDateString('ru-RU')}</p>
+              <Card padding="lg">
+                <div className="locked-message">
+                  <Lock size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                  <p>Войдите или зарегистрируйтесь для доступа к курсу</p>
+                  <div className="locked-actions">
+                    <Button as={Link} to="/login">Войти</Button>
+                    <Button as={Link} to="/register" variant="secondary">Регистрация</Button>
                   </div>
-                )}
-                {course.start_date && new Date(course.start_date) > new Date() && (
-                  <CountdownTimer startDate={course.start_date} />
-                )}
-                <p>Запишитесь на курс для доступа к материалам</p>
-                <button onClick={async () => { 
-                  try { 
-                    await coursesApi.enroll(id); 
-                    loadData(); 
-                    showToast('Вы записаны на курс!', 'success')
-                  } catch (err) {
-                    showToast(err.response?.data?.detail || 'Ошибка записи на курс', 'error')
-                  }
-                }} className="btn btn-primary">Записаться</button>
-              </div>
+                </div>
+              </Card>
+            ) : !course.is_enrolled ? (
+              <Card padding="lg">
+                <div className="locked-message">
+                  {course.start_date && course.end_date && (
+                    <div className="course-dates">
+                      <p><Calendar size={16} style={{ display: 'inline', marginRight: '0.5rem' }} />Период обучения: {new Date(course.start_date).toLocaleDateString('ru-RU')} - {new Date(course.end_date).toLocaleDateString('ru-RU')}</p>
+                    </div>
+                  )}
+                  {course.start_date && new Date(course.start_date) > new Date() && (
+                    <CountdownTimer startDate={course.start_date} />
+                  )}
+                  <p>Запишитесь на курс для доступа к материалам</p>
+                  <Button onClick={async () => { 
+                    try { 
+                      await coursesApi.enroll(id); 
+                      loadData(); 
+                      showToast('Вы записаны на курс!', 'success')
+                    } catch (err) {
+                      showToast(err.response?.data?.detail || 'Ошибка записи на курс', 'error')
+                    }
+                  }}>
+                    <BookOpen size={16} /> Записаться
+                  </Button>
+                </div>
+              </Card>
             ) : (
               <div className="course-content">
                 {course.sections?.map(section => (
                   <div key={section.id} className="view-section">
-                    <h2>{section.title}</h2>
+                    <h2><BookOpen size={20} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />{section.title}</h2>
                     {section.chapters?.map(chapter => (
                       <div key={chapter.id} className="view-chapter">
                         <h3>{chapter.title}</h3>
-                        {chapter.contents?.map(content => (
-                          <Link key={content.id} to={`/courses/${id}/content/${content.id}`} className="view-content-link">
-                            <span className="content-icon">
-                              {content.content_type === 'text' && '📝'}
-                              {content.content_type === 'quote' && '❝'}
-                              {content.content_type === 'image' && '🖼️'}
-                              {content.content_type === 'video' && '🎬'}
-                              {content.content_type === 'list' && '📋'}
-                              {content.content_type === 'interactive' && '🖱️'}
-                              {content.content_type === 'separator' && '➖'}
-                              {content.content_type === 'file' && '📎'}
-                            </span>
-                            {content.title}
-                          </Link>
-                        ))}
+                        {chapter.contents?.map(content => {
+                          const IconComponent = CONTENT_ICONS[content.content_type] || FileText
+                          return (
+                            <Link key={content.id} to={`/courses/${id}/content/${content.id}`} className="view-content-link">
+                              <span className="content-icon"><IconComponent size={16} /></span>
+                              {content.title}
+                            </Link>
+                          )
+                        })}
                         {chapter.quiz && (
-                          <Link to={`/courses/${id}/quiz/${chapter.quiz.id}`} className="view-content-link" style={{ marginTop: '0.5rem', borderTop: '1px dashed var(--color-border)', paddingTop: '0.5rem' }}>
-                            <span className="content-icon">📋</span>
+                          <Link to={`/courses/${id}/quiz/${chapter.quiz.id}`} className="view-content-link quiz-link">
+                            <span className="content-icon"><ClipboardList size={16} /></span>
                             {chapter.quiz.title}
                           </Link>
                         )}
@@ -411,9 +432,12 @@ function CourseDetail() {
               </div>
             )
           ) : (
-            <div className="locked-message">
-              <p>Этот курс находится на модерации</p>
-            </div>
+            <Card padding="lg">
+              <div className="locked-message">
+                <Clock size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+                <p>Этот курс находится на модерации</p>
+              </div>
+            </Card>
           )}
         </div>
       )}
@@ -421,7 +445,10 @@ function CourseDetail() {
       {showAddChapter && (
         <div className="modal-overlay" onClick={() => setShowAddChapter(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3>Добавить главу</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ margin: 0 }}><Plus size={20} style={{ display: 'inline', marginRight: '0.5rem' }} />Добавить главу</h3>
+              <button onClick={() => setShowAddChapter(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }}><X size={20} /></button>
+            </div>
             <input
               type="text"
               placeholder="Название главы"
@@ -431,8 +458,8 @@ function CourseDetail() {
               autoFocus
             />
             <div className="modal-actions">
-              <button className="btn btn-secondary" onClick={() => setShowAddChapter(null)}>Отмена</button>
-              <button className="btn btn-primary" onClick={confirmAddChapter}>Добавить</button>
+              <Button variant="secondary" onClick={() => setShowAddChapter(null)}>Отмена</Button>
+              <Button onClick={confirmAddChapter}>Добавить</Button>
             </div>
           </div>
         </div>

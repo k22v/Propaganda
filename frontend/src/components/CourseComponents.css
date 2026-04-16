@@ -1,0 +1,214 @@
+/* ============================================
+   COURSE CARD
+   ============================================ */
+.course-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+}
+
+.course-card-link {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  text-decoration: none;
+  color: inherit;
+}
+
+.course-card-cover {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.course-card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.course-card-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+}
+
+.course-card-badge {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+}
+
+.course-card-body {
+  padding: 1.25rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.course-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-bottom: 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.course-card-description {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin-bottom: 0.75rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+}
+
+.course-card-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.course-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.course-card-progress {
+  margin-top: auto;
+}
+
+.progress-label {
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  font-weight: 500;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.course-card-footer {
+  padding: 0 1.25rem 1.25rem;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* ============================================
+   COURSE GRID
+   ============================================ */
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.course-grid-empty {
+  text-align: center;
+  padding: 3rem;
+}
+
+.course-grid-empty span {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.course-grid-empty h3 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.course-grid-empty p {
+  color: var(--color-text-secondary);
+}
+
+/* ============================================
+   COURSE CARD COMPACT
+   ============================================ */
+.course-card-compact {
+  display: flex;
+  gap: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.course-card-compact:hover {
+  transform: translateX(4px);
+}
+
+.course-compact-cover {
+  width: 100px;
+  height: 70px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.course-compact-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.course-compact-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.course-compact-content h4 {
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================
+   SKELETON VARIANTS
+   ============================================ */
+.skeleton-card {
+  height: 160px;
+}
+
+.skeleton-title {
+  height: 1.25rem;
+  width: 70%;
+}
+
+.skeleton-text {
+  height: 0.875rem;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .courses-grid {
+    grid-template-columns: 1fr;
+  }
+}

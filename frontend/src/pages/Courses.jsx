@@ -1,7 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { Search, BookOpen } from 'lucide-react'
 import { coursesApi, authApi } from '../api'
 import { useToast, ToastContainer } from '../components/Toast'
+import { Card, Badge, Button } from '../components/ui/index.jsx'
+import { CourseCard, CourseGrid } from '../components/CourseComponents'
+import './Courses.css'
 
 const PAGE_SIZE = 12
 
@@ -92,19 +96,27 @@ function Courses() {
     return () => observer.disconnect()
   }, [hasMore, loading])
 
-  const showEditButton = currentUser && (currentUser.is_superuser || currentUser.id === 5)
+  const showEditButton = currentUser && currentUser.is_superuser
 
   const handleSpecializationChange = (specValue, index) => {
-    console.log('handleSpecializationChange:', specValue, currentUser?.specialization)
     if (specValue && currentUser && !currentUser.is_superuser && currentUser.specialization) {
       if (specValue !== currentUser.specialization) {
-        console.log('Showing toast for blocked specialization')
         showToast(`Курсы для "${SPECIALIZATIONS.find(s => s.value === specValue)?.label}" недоступны. Ваша специализация: ${SPECIALIZATIONS.find(s => s.value === currentUser.specialization)?.label}`, 'warning')
         return
       }
     }
     setSpecialization(specValue)
     updateSlider(index)
+  }
+
+  const handleEnroll = async (courseId) => {
+    try {
+      await coursesApi.enroll(courseId)
+      showToast('Вы записаны на курс!', 'success')
+      loadCourses(0, specialization, searchQuery)
+    } catch (err) {
+      showToast(err.response?.data?.detail || 'Ошибка записи', 'error')
+    }
   }
 
   return (
@@ -114,6 +126,7 @@ function Courses() {
       </div>
       
       <div className="search-box">
+        <Search size={20} className="search-icon" />
         <input
           type="text"
           placeholder="Поиск курсов..."
@@ -147,79 +160,47 @@ function Courses() {
       </div>
       
       {loading && courses.length === 0 ? (
-        <div className="loading-state">
-          <div className="loader-spinner"></div>
-          <p>Загрузка курсов...</p>
-        </div>
+        <CourseGrid courses={[]} isLoading={true} />
       ) : courses.length === 0 && !loading ? (
-        <div className="empty-state">
-          <div className="empty-state-icon">📚</div>
-          <h3>Курсов не найдено</h3>
-          <p>{searchQuery ? `По запросу "${searchQuery}" ничего не найдено` : 'Курсов пока нет'}</p>
-        </div>
+        <Card padding="lg">
+          <div className="empty-state">
+            <BookOpen size={48} />
+            <h3 className="empty-title">Курсов не найдено</h3>
+            <p className="empty-description">
+              {searchQuery ? `По запросу "${searchQuery}" ничего не найдено` : 'Курсов пока нет'}
+            </p>
+            {searchQuery && (
+              <Button variant="secondary" onClick={() => {
+                setSearchQuery('')
+                setPage(0)
+                loadCourses(0, specialization, '')
+              }}>
+                Очистить поиск
+              </Button>
+            )}
+          </div>
+        </Card>
       ) : (
         <>
-          <div className="courses-grid">
-            {courses.map(course => (
-              <div key={course.id} className="course-card">
-                <Link to={`/courses/${course.id}`} className="course-card-link">
-                  <h3>{course.title}</h3>
-                  <p>{course.description || 'Описание отсутствует'}</p>
-                  <div className="course-meta">
-                    <span>Уроков: {course.lessons_count || 0}</span>
-                  </div>
-                </Link>
-                {showEditButton && (
-                  <div className="course-actions">
-                    <Link to={`/courses/${course.id}`} className="btn btn-primary">Редактировать</Link>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <CourseGrid 
+            courses={courses} 
+            isLoading={false}
+            onEnroll={handleEnroll}
+          />
           <div ref={loaderRef} className="infinite-scroll-loader">
-            {loading && <div className="loader-spinner"></div>}
-            {!hasMore && courses.length > 0 && <p className="end-message">Все курсы загружены</p>}
+            {loading && (
+              <div className="loading-more">
+                <div className="loader-spinner"></div>
+                <span>Загрузка...</span>
+              </div>
+            )}
+            {!hasMore && courses.length > 0 && (
+              <p className="end-message">Все курсы загружены ({courses.length})</p>
+            )}
           </div>
         </>
       )}
       <ToastContainer toast={toast} onClose={closeToast} />
-      
-      <style>{`
-        .search-box {
-          margin-bottom: 1.5rem;
-        }
-        .search-box input {
-          width: 100%;
-          padding: 0.75rem 1rem;
-          border: 1px solid var(--color-border);
-          border-radius: var(--radius-md);
-          font-size: 1rem;
-          background: var(--color-surface);
-          color: var(--color-text);
-        }
-        .search-box input:focus {
-          outline: none;
-          border-color: #1a6ce8;
-          box-shadow: 0 0 0 2px rgba(26, 108, 232, 0.1);
-        }
-        .loading-state {
-          text-align: center;
-          padding: 3rem;
-        }
-        .loading-state .loader-spinner {
-          width: 40px;
-          height: 40px;
-          border: 3px solid var(--color-border);
-          border-top-color: #1a6ce8;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-          margin: 0 auto 1rem;
-        }
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   )
 }
