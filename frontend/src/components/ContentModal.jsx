@@ -1,18 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
+import { FileText, Quote, Image, Video, List, MousePointer, Minus, Paperclip } from 'lucide-react'
 import { coursesApi, quizApi, authApi } from '../api'
 import RichTextEditor from '../components/RichTextEditor'
 import { useToast } from './Toast'
 
 const contentTypes = [
-  { type: 'text', icon: '📝', label: 'Текст', color: '#3b82f6' },
-  { type: 'quote', icon: '❝', label: 'Цитата', color: '#8b5cf6' },
-  { type: 'image', icon: '🖼️', label: 'Изображение', color: '#ec4899' },
-  { type: 'video', icon: '🎬', label: 'Видео', color: '#ef4444' },
-  { type: 'list', icon: '📋', label: 'Список', color: '#14b8a6' },
-  { type: 'interactive', icon: '🖱️', label: 'Интерактив', color: '#f59e0b' },
-  { type: 'separator', icon: '➖', label: 'Разделитель', color: '#6b7280' },
-  { type: 'file', icon: '📎', label: 'Файл', color: '#10b981' },
+  { type: 'text', icon: FileText, label: 'Текст', color: '#3b82f6' },
+  { type: 'quote', icon: Quote, label: 'Цитата', color: '#8b5cf6' },
+  { type: 'image', icon: Image, label: 'Изображение', color: '#ec4899' },
+  { type: 'video', icon: Video, label: 'Видео', color: '#ef4444' },
+  { type: 'list', icon: List, label: 'Список', color: '#14b8a6' },
+  { type: 'interactive', icon: MousePointer, label: 'Интерактив', color: '#f59e0b' },
+  { type: 'separator', icon: Minus, label: 'Разделитель', color: '#6b7280' },
+  { type: 'file', icon: Paperclip, label: 'Файл', color: '#10b981' },
 ]
 
 const defaultTemplates = {
@@ -170,14 +171,14 @@ function ContentModal({ isOpen, onClose, chapterId, onSave }) {
         <div className="modal-body">
           {step === 'select-type' && (
             <div className="content-type-grid">
-              {contentTypes.map(({ type, icon, label, color }) => (
+              {contentTypes.map(({ type, icon: Icon, label, color }) => (
                 <div
                   key={type}
                   className="content-type-card"
                   onClick={() => { setContentType(type); setStep('select-template') }}
                   style={{ borderColor: color }}
                 >
-                  <span className="type-icon">{icon}</span>
+                  <span className="type-icon" style={{ color }}><Icon size={24} /></span>
                   <span className="type-label">{label}</span>
                 </div>
               ))}

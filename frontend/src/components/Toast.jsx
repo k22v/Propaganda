@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import './Toast.css'
+import { CheckCircle, XCircle, AlertTriangle, Info, X } from 'lucide-react'
 import './Toast.css'
 
 let toastTimeout = null
@@ -11,16 +11,29 @@ function Toast({ message, type, onClose }) {
     return () => { if (toastTimeout) clearTimeout(toastTimeout) }
   }, [onClose])
 
+  const icons = {
+    error: <XCircle size={20} />,
+    success: <CheckCircle size={20} />,
+    warning: <AlertTriangle size={20} />,
+    info: <Info size={20} />
+  }
+
+  const colors = {
+    error: '#ef4444',
+    success: '#10b981',
+    warning: '#f59e0b',
+    info: '#3b82f6'
+  }
+
   return (
-    <div className={`toast toast-${type}`}>
-      <span className="toast-icon">
-        {type === 'error' && '❌'}
-        {type === 'success' && '✅'}
-        {type === 'warning' && '⚠️'}
-        {type === 'info' && 'ℹ️'}
+    <div className={`toast toast-${type}`} style={{ '--toast-color': colors[type] }}>
+      <span className="toast-icon" style={{ color: colors[type] }}>
+        {icons[type]}
       </span>
       <span className="toast-message">{message}</span>
-      <button className="toast-close" onClick={onClose}>×</button>
+      <button className="toast-close" onClick={onClose}>
+        <X size={16} />
+      </button>
     </div>
   )
 }

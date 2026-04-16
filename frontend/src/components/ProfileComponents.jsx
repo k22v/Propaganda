@@ -1,3 +1,4 @@
+import { BookOpen, CheckCircle, Award, FileText, Edit, Lock } from 'lucide-react'
 import { Card, Avatar, Button, Badge } from './ui/index.jsx'
 import './ProfileSidebar.css'
 
@@ -79,17 +80,17 @@ function formatDate(dateStr) {
 
 export function ProfileStatsGrid({ stats }) {
   const items = [
-    { label: 'Курсов', value: stats?.courses_count || 0, icon: '📚' },
-    { label: 'Завершено', value: stats?.completed_count || 0, icon: '✅' },
-    { label: 'Сертификатов', value: stats?.certificates_count || 0, icon: '🏆' },
-    { label: 'Тестов', value: stats?.tests_count || 0, icon: '📝' },
+    { label: 'Курсов', value: stats?.courses_count || 0, icon: BookOpen, color: '#3b82f6' },
+    { label: 'Завершено', value: stats?.completed_count || 0, icon: CheckCircle, color: '#10b981' },
+    { label: 'Сертификатов', value: stats?.certificates_count || 0, icon: Award, color: '#f59e0b' },
+    { label: 'Тестов', value: stats?.tests_count || 0, icon: FileText, color: '#8b5cf6' },
   ]
 
   return (
     <div className="stats-grid-profile">
       {items.map(item => (
         <Card key={item.label} className="stat-item" padding="md">
-          <span className="stat-icon">{item.icon}</span>
+          <span className="stat-icon" style={{ color: item.color }}><item.icon size={24} /></span>
           <div className="stat-content">
             <span className="stat-value">{item.value}</span>
             <span className="stat-label">{item.label}</span>

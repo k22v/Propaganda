@@ -219,6 +219,10 @@ Sections → chapters → contents → progress - классический N+1. 
 20. **Login.jsx** - переработан с gradient background и lucide-react
 21. **Register.jsx** - переработан с lucide-react иконками
 22. **NotFound.jsx** - обновлён с HeartCrack иконкой, современный дизайн
+23. **Toast.jsx** - обновлён с lucide-react иконками (CheckCircle, XCircle, etc.)
+24. **ContentModal.jsx** - обновлены иконки типов контента на lucide-react
+25. **ProfileComponents.jsx** - обновлены иконки статистики на lucide-react
+26. **AdminComponents.jsx** - обновлены иконки AdminStatsRow на lucide-react
 
 ---
 

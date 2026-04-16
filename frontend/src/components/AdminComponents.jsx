@@ -1,3 +1,4 @@
+import { Users, BookOpen, CheckCircle, FileText } from 'lucide-react'
 import { Card, Badge, Button, DropdownMenu } from './ui/index.jsx'
 import './AdminComponents.css'
 
@@ -198,17 +199,17 @@ export function UserRowActions({ user, onEdit, onBlock, onDelete, onResetPasswor
 
 export function AdminStatsRow({ stats }) {
   const items = [
-    { label: 'Пользователей', value: stats?.users_count || 0, icon: '👥' },
-    { label: 'Курсов', value: stats?.courses_count || 0, icon: '📚' },
-    { label: 'Активных', value: stats?.active_users || 0, icon: '✅' },
-    { label: 'Тестов пройдено', value: stats?.tests_completed || 0, icon: '📝' },
+    { label: 'Пользователей', value: stats?.users_count || 0, icon: Users, color: '#3b82f6' },
+    { label: 'Курсов', value: stats?.courses_count || 0, icon: BookOpen, color: '#8b5cf6' },
+    { label: 'Активных', value: stats?.active_users || 0, icon: CheckCircle, color: '#10b981' },
+    { label: 'Тестов пройдено', value: stats?.tests_completed || 0, icon: FileText, color: '#f59e0b' },
   ]
 
   return (
     <div className="admin-stats-row">
       {items.map(item => (
         <Card key={item.label} className="admin-stat-card" padding="md">
-          <span className="stat-icon">{item.icon}</span>
+          <span className="stat-icon" style={{ color: item.color }}><item.icon size={24} /></span>
           <div className="stat-info">
             <span className="stat-value">{item.value}</span>
             <span className="stat-label">{item.label}</span>
