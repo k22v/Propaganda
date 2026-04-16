@@ -17,6 +17,13 @@ from app.schemas import (
 )
 from app.auth import get_current_active_user
 from app.policies import can_edit_course, require_permission, Permission
+from app.sanitize import sanitize_html
+from app.upload_utils import (
+    validate_file,
+    generate_secure_filename,
+    get_file_category,
+    MAX_FILE_SIZES
+)
 
 router = APIRouter(prefix="/courses", tags=["courses"])
 
@@ -575,7 +582,7 @@ async def create_content(
         chapter_id=content_data.chapter_id,
         title=content_data.title,
         content_type=content_data.content_type,
-        content=content_data.content,
+        content=sanitize_html(content_data.content or ''),
         video_url=content_data.video_url,
         file_url=content_data.file_url,
         duration=content_data.duration,
@@ -627,7 +634,7 @@ async def update_content(
     if content_data.content_type is not None:
         content.content_type = content_data.content_type
     if content_data.content is not None:
-        content.content = content_data.content
+        content.content = sanitize_html(content_data.content)
     if content_data.video_url is not None:
         content.video_url = content_data.video_url
     if content_data.file_url is not None:
@@ -861,22 +868,32 @@ async def get_content(
 
 @router.post("/upload")
 @limiter.limit("10/minute")
+@require_permission(Permission.CAN_UPLOAD_MEDIA)
 async def upload_file(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_active_user)
 ):
-    if not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Нет доступа")
+    # Read file content
+    content = await file.read()
+    file_size = len(content)
     
-    file_ext = os.path.splitext(file.filename)[1]
-    filename = f"{uuid.uuid4()}{file_ext}"
-    file_path = os.path.join(UPLOAD_DIR, filename)
+    # Validate file type and size
+    content_type = file.content_type or 'application/octet-stream'
+    validate_file(file.filename, content_type, file_size)
     
+    # Get category for size limit
+    category = get_file_category(file.filename)
+    max_size = MAX_FILE_SIZES.get(category, 10 * 1024 * 1024) if category else 10 * 1024 * 1024
+    
+    # Generate secure filename
+    safe_filename = generate_secure_filename(file.filename)
+    file_path = os.path.join(UPLOAD_DIR, safe_filename)
+    
+    # Write file
     with open(file_path, "wb") as f:
-        content = await file.read()
         f.write(content)
     
     return {
-        "url": f"/uploads/{filename}",
-        "filename": filename
+        "url": f"/uploads/{safe_filename}",
+        "filename": safe_filename
     }

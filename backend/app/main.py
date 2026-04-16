@@ -1,12 +1,16 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.security import SecurityHeadersMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from fastapi import Depends
 from app.database import init_db, get_db
+from app.sanitize import CSP_POLICY
 from app.routers import auth, courses, quizzes
 from app.routers.templates import router as templates_router
 from app.routers.instruments import router as instruments_router
@@ -62,6 +66,23 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        # CSP
+        response.headers["Content-Security-Policy"] = CSP_POLICY
+        # X-Content-Type-Options
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        # X-Frame-Options
+        response.headers["X-Frame-Options"] = "DENY"
+        # Referrer-Policy
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 

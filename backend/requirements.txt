@@ -13,3 +13,4 @@ slowapi
 redis
 email-validator
 aiosmtplib
+bleach
