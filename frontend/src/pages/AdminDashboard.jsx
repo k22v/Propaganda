@@ -209,7 +209,7 @@ export default function AdminDashboard() {
             onExport={handleExportUsers}
           />
           <UsersTable
-            users={filteredUsers}
+            users={users}
             isLoading={loading}
             pagination={pagination}
             onPageChange={(page) => setPagination(p => ({ ...p, page }))}

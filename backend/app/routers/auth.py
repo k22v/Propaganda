@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import timedelta
 from app.database import get_db
-from app.models import User, Enrollment, Review, Course, RefreshToken
+from app.models import User, Enrollment, Review, Course, RefreshToken, LessonProgress
 from app.schemas import UserCreate, UserResponse, Token, UserUpdateAvatar, UserUpdateProfile, PasswordChange
 from app.auth import (
     verify_password, get_password_hash, create_access_token, get_current_active_user,
@@ -300,9 +300,11 @@ async def get_profile_stats(
     
     try:
         completed_result = await db.execute(
-            select(func.count(Enrollment.id)).where(
+            select(func.count(func.distinct(LessonProgress.enrollment_id)))
+            .join(Enrollment, LessonProgress.enrollment_id == Enrollment.id)
+            .where(
                 Enrollment.user_id == current_user.id,
-                Enrollment.completed == True
+                LessonProgress.is_completed == True
             )
         )
         completed_count = completed_result.scalar() or 0
