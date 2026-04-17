@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 :root {
-  --color-primary: #2d2d2d;
+  --color-primary: #3b82f6;
   --color-secondary: #6b7280;
   --color-border: #e5e7eb;
   --color-bg: #f9fafb;
@@ -1818,16 +1818,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .btn-primary {
-  background: linear-gradient(180deg, #1a6ce8 0%, #015ED9 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
   border: none;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(1, 94, 217, 0.25);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
   transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(180deg, #1a7af8 0%, #0068d6 100%);
-  box-shadow: 0 4px 12px rgba(1, 94, 217, 0.35);
+  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
   transform: translateY(-1px);
 }
 

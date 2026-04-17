@@ -29,7 +29,7 @@ function Login() {
       alignItems: 'center', 
       justifyContent: 'center', 
       padding: '2rem',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
     }}>
       <Card padding="lg" style={{ width: '100%', maxWidth: '420px' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -37,7 +37,7 @@ function Login() {
             width: '64px', 
             height: '64px', 
             borderRadius: '50%', 
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
