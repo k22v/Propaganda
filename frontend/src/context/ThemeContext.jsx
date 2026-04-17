@@ -3,12 +3,13 @@ import { createContext, useContext, useState, useEffect } from 'react'
 const ThemeContext = createContext()
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState('light')
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light')
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', 'light')
-    setTheme('light')
+    const saved = localStorage.getItem('theme') || 'light'
+    document.documentElement.setAttribute('data-theme', saved)
+    setTheme(saved)
     setMounted(true)
   }, [])
 
