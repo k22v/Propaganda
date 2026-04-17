@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect, lazy, Suspense } from 'react'
-import { authApi, clearToken } from './api'
+import { authApi, clearCookies } from './api'
 import Layout from './components/Layout'
 import Loader from './components/Loader'
 import { LoadingProvider } from './components/LoadingContext'
@@ -67,12 +67,14 @@ function App() {
   }
 
   const handleLogout = async () => {
-    clearToken()
     try {
       await authApi.logout?.()
-    } catch (err) {}
-    setIsAuthenticated(false)
-    setCurrentUser(null)
+    } catch (err) {
+    } finally {
+      clearCookies()
+      setIsAuthenticated(false)
+      setCurrentUser(null)
+    }
   }
 
   const handleLogin = async () => {

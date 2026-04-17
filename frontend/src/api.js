@@ -9,19 +9,30 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config
-    
-    if (error.response?.status === 401 && !originalRequest._retry) {
+
+    if (!error.response) {
+      return Promise.reject(error)
+    }
+
+    const isRefreshCall = originalRequest?.url?.includes('/auth/refresh')
+
+    if (
+      error.response.status === 401 &&
+      !originalRequest?._retry &&
+      !isRefreshCall
+    ) {
       originalRequest._retry = true
-      
+
       try {
         await api.post('/auth/refresh')
         return api(originalRequest)
       } catch (refreshError) {
+        clearCookies()
         window.location.href = '/login'
         return Promise.reject(refreshError)
       }
     }
-    
+
     return Promise.reject(error)
   }
 )
@@ -30,6 +41,10 @@ export const clearCookies = () => {
   document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
   document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
 }
+
+export const clearToken = clearCookies
+
+export { api }
 
 export const authApi = {
   register: (data) => api.post('/auth/register', data),
@@ -142,5 +157,7 @@ export const certificatesApi = {
   verify: (code) => api.post('/certificates/verify', { verification_code: code }),
   issue: (courseId, userId) => api.post('/certificates/issue', { course_id: courseId, user_id: userId }),
 }
+
+export const quizApi = quizzesApi
 
 export default api
