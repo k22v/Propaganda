@@ -43,7 +43,7 @@ function Register() {
       alignItems: 'center', 
       justifyContent: 'center', 
       padding: '2rem',
-      background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)'
+      background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)'
     }}>
       <Card padding="lg" style={{ width: '100%', maxWidth: '480px' }}>
         <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
@@ -51,7 +51,7 @@ function Register() {
             width: '64px', 
             height: '64px', 
             borderRadius: '50%', 
-            background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
+            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -188,7 +188,7 @@ function Register() {
             />
           </div>
           
-          <Button type="submit" size="lg" className="w-full" disabled={loading}>
+          <Button type="submit" size="lg" className="w-full btn-primary" disabled={loading}>
             {loading ? 'Регистрация...' : 'Зарегистрироваться'}
           </Button>
         </form>

@@ -310,12 +310,12 @@
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #015ED9 0%, #0070da 50%, #015ED9 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #3b82f6 100%);
   background-size: 200% 200%;
   color: #fff;
   border: none;
   animation: gradientShift 3s ease infinite;
-  box-shadow: 0 4px 15px rgba(1, 94, 217, 0.3);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
   transition: all 0.3s ease;
 }
 

@@ -375,7 +375,7 @@
   padding: 0.5rem 1rem !important;
   border-radius: var(--radius-sm) !important;
   border: none !important;
-  background: linear-gradient(180deg, #1a6ce8 0%, #015ED9 100%) !important;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
   color: white !important;
   font-weight: 500 !important;
   cursor: pointer !important;
@@ -384,7 +384,7 @@
 }
 
 .course-specialization-edit select:hover {
-  background: linear-gradient(180deg, #1a7af8 0%, #0068d6 100%) !important;
+  background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%) !important;
   box-shadow: 0 4px 12px rgba(1, 94, 217, 0.35) !important;
 }
 
@@ -398,7 +398,7 @@
   padding: 0.4rem 0.8rem !important;
   border-radius: var(--radius-sm) !important;
   border: none !important;
-  background: linear-gradient(180deg, #1a6ce8 0%, #015ED9 100%) !important;
+  background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%) !important;
   color: white !important;
   font-weight: 500 !important;
   cursor: pointer !important;
@@ -407,7 +407,7 @@
 }
 
 .admin-table-select:hover {
-  background: linear-gradient(180deg, #1a7af8 0%, #0068d6 100%) !important;
+  background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%) !important;
   box-shadow: 0 4px 12px rgba(1, 94, 217, 0.35) !important;
 }
 
