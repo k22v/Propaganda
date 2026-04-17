@@ -124,7 +124,7 @@ function Login() {
             Запомнить меня
           </label>
           
-          <Button type="submit" size="lg" className="w-full" disabled={loading}>
+          <Button type="submit" size="lg" className="w-full btn-primary" disabled={loading}>
             {loading ? 'Вход...' : 'Войти'}
           </Button>
         </form>
