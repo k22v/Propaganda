@@ -15,7 +15,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login", auto_error=Fals
 
 REFRESH_TOKEN_COOKIE_NAME = "refresh_token"
 ACCESS_TOKEN_COOKIE_NAME = "access_token"
-COOKIE_SECURE = True
+COOKIE_SECURE = False  # Set True in production with HTTPS
 COOKIE_SAMESITE = "lax"
 
 

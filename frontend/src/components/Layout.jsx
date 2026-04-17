@@ -14,7 +14,7 @@ const ANIMALS = [
   { id: 13, emoji: '🦩' }, { id: 14, emoji: '🐳' }, { id: 15, emoji: '🦉' }, { id: 16, emoji: '🦅' },
 ]
 
-function Layout({ isAuthenticated, onLogout }) {
+function Layout({ isAuthenticated, onLogout, onLogin }) {
   const navigate = useNavigate()
   const location = useLocation()
   const { theme, toggleTheme } = useTheme()
@@ -117,9 +117,9 @@ function Layout({ isAuthenticated, onLogout }) {
     setLoginError('')
     try {
       await authApi.login(loginData)
-      window.location.reload()
+      await onLogin?.()
       setShowLogin(false)
-      setLoginData({ username: '', password: '' })
+      setLoginData({ username: '', password: '', remember_me: false })
     } catch (err) {
       if (err.response?.status === 403) {
         setLoginError('Ваш аккаунт заблокирован. Свяжитесь с администратором.')

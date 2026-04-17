@@ -78,7 +78,13 @@ function App() {
   }
 
   const handleLogin = async () => {
-    setIsAuthenticated(true)
+    try {
+      const { data } = await authApi.getMe()
+      setCurrentUser(data)
+      setIsAuthenticated(true)
+    } catch {
+      setIsAuthenticated(false)
+    }
   }
 
   const isSuperuser = !!currentUser && (
