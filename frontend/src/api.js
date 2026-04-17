@@ -1,32 +1,35 @@
 import axios from 'axios'
 
-const TOKEN_KEY = 'access_token'
-
-const getToken = () => localStorage.getItem(TOKEN_KEY)
-const setToken = (token) => localStorage.setItem(TOKEN_KEY, token)
-export const clearToken = () => localStorage.removeItem(TOKEN_KEY)
-
 const api = axios.create({
   baseURL: '/api',
-})
-
-api.interceptors.request.use((config) => {
-  const token = getToken()
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
+  withCredentials: true,
 })
 
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      clearToken()
+  async (error) => {
+    const originalRequest = error.config
+    
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true
+      
+      try {
+        await api.post('/auth/refresh')
+        return api(originalRequest)
+      } catch (refreshError) {
+        window.location.href = '/login'
+        return Promise.reject(refreshError)
+      }
     }
+    
     return Promise.reject(error)
   }
 )
+
+export const clearCookies = () => {
+  document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+  document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
+}
 
 export const authApi = {
   register: (data) => api.post('/auth/register', data),
@@ -39,17 +42,9 @@ export const authApi = {
     }
     return api.post('/auth/login', formData, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    }).then(res => {
-      if (res.data.access_token) {
-        setToken(res.data.access_token)
-      }
-      return res
     })
   },
-  logout: () => {
-    clearToken()
-    return api.post('/auth/logout')
-  },
+  logout: () => api.post('/auth/logout'),
   getMe: () => api.get('/auth/me'),
   getProfileStats: () => api.get('/auth/profile-stats'),
   updateAvatar: (avatarId) => api.put('/auth/avatar', { avatar_id: avatarId }),
@@ -58,104 +53,38 @@ export const authApi = {
 }
 
 export const coursesApi = {
-  getAll: (skip = 0, limit = 12, specialization = null, search = null) => {
-    let url = `/courses/?skip=${skip}&limit=${limit}`
-    if (specialization) url += `&specialization=${specialization}`
-    if (search) url += `&search=${encodeURIComponent(search)}`
-    return api.get(url)
-  },
+  getAll: (params) => api.get('/courses/', { params }),
+  getById: (id) => api.get(`/courses/${id}`),
   getMy: () => api.get('/courses/my'),
-  getMyCourses: () => api.get('/courses/my'),
-  getOne: (id) => api.get(`/courses/${id}`),
   create: (data) => api.post('/courses/', data),
   update: (id, data) => api.patch(`/courses/${id}`, data),
   delete: (id) => api.delete(`/courses/${id}`),
-  uploadFile: (file) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    return api.post('/courses/upload', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-  },
-  
-  // Sections
+  enroll: (id) => api.post(`/courses/${id}/enroll`),
+  unenroll: (id) => api.delete(`/courses/${id}/enroll`),
   createSection: (courseId, data) => api.post(`/courses/${courseId}/sections`, data),
+  updateSection: (courseId, sectionId, data) => api.patch(`/courses/${courseId}/sections/${sectionId}`, data),
   deleteSection: (courseId, sectionId) => api.delete(`/courses/${courseId}/sections/${sectionId}`),
-  reorderSections: (courseId, data) => api.post(`/courses/${courseId}/sections/reorder`, data),
-  reorderChapters: (courseId, data) => api.post(`/courses/${courseId}/chapters/reorder`, data),
-  reorderContents: (courseId, data) => api.post(`/courses/${courseId}/contents/reorder`, data),
-  
-  // Chapters
-  createChapter: (courseId, data) => api.post(`/courses/${courseId}/chapters`, data),
-  deleteChapter: (courseId, chapterId) => api.delete(`/courses/${courseId}/chapters/${chapterId}`),
-  
-  // Contents
+  createChapter: (courseId, sectionId, data) => api.post(`/courses/${courseId}/sections/${sectionId}/chapters`, data),
+  updateChapter: (courseId, sectionId, chapterId, data) => api.patch(`/courses/${courseId}/sections/${sectionId}/chapters/${chapterId}`, data),
+  deleteChapter: (courseId, sectionId, chapterId) => api.delete(`/courses/${courseId}/sections/${sectionId}/chapters/${chapterId}`),
   createContent: (courseId, data) => api.post(`/courses/${courseId}/contents`, data),
   updateContent: (courseId, contentId, data) => api.patch(`/courses/${courseId}/contents/${contentId}`, data),
   deleteContent: (courseId, contentId) => api.delete(`/courses/${courseId}/contents/${contentId}`),
-  getContent: (courseId, contentId) => api.get(`/courses/${courseId}/contents/${contentId}`),
-  
-  enroll: (id) => api.post(`/courses/${id}/enroll`),
+  reorderContent: (courseId, data) => api.post(`/courses/${courseId}/reorder-content`, data),
 }
 
-export const quizApi = {
+export const quizzesApi = {
+  getById: (id) => api.get(`/quizzes/${id}`),
   getByLesson: (lessonId) => api.get(`/quizzes/lesson/${lessonId}`),
-  getOne: (quizId) => api.get(`/quizzes/${quizId}`),
-  create: (data) => api.post('/quizzes/', data),
-  submit: (quizId, answers) => api.post(`/quizzes/${quizId}/attempt`, { answers }),
-  getBestAttempt: (quizId) => api.get(`/quizzes/attempt/${quizId}/best`),
+  submit: (id, data) => api.post(`/quizzes/${id}/submit`, data),
+  getResults: (attemptId) => api.get(`/quizzes/results/${attemptId}`),
 }
 
-export const templatesApi = {
-  getAll: () => api.get('/templates/'),
-  create: (data) => api.post('/templates/', data),
-  update: (id, data) => api.put(`/templates/${id}`, data),
-  delete: (id) => api.delete(`/templates/${id}`),
-}
-
-export const instrumentsApi = {
-  getAll: (params) => api.get('/instruments/', { params }),
-  getOne: (id) => api.get(`/instruments/${id}`),
-  getCategories: () => api.get('/instruments/categories'),
-  create: (data) => api.post('/instruments/', data),
-  update: (id, data) => api.patch(`/instruments/${id}`, data),
-  delete: (id) => api.delete(`/instruments/${id}`),
-  uploadImage: (file) => {
-    const formData = new FormData()
-    formData.append('file', file)
-    return api.post('/instruments/upload-image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    })
-  },
-}
-
-export const practiceApi = {
-  getQuestions: (courseId) => api.get(`/practice/course/${courseId}`),
-  getRandomQuestion: (courseId) => api.get(`/practice/course/${courseId}/random`),
-  create: (data) => api.post('/practice/', data),
-  update: (id, data) => api.patch(`/practice/${id}`, data),
-  delete: (id) => api.delete(`/practice/${id}`),
-}
-
-export const adminApi = {
-  getStats: () => api.get('/admin/stats'),
-  getUsers: (params = {}) => {
-    const searchParams = new URLSearchParams()
-    if (params.search) searchParams.append('search', params.search)
-    if (params.role) searchParams.append('role', params.role)
-    if (params.specialization) searchParams.append('specialization', params.specialization)
-    if (params.is_active !== undefined) searchParams.append('is_active', params.is_active)
-    if (params.skip) searchParams.append('skip', params.skip)
-    if (params.limit) searchParams.append('limit', params.limit)
-    const query = searchParams.toString()
-    return api.get(`/admin/users${query ? '?' + query : ''}`)
-  },
-  getUser: (id) => api.get(`/admin/users/${id}`),
-  updateUserRole: (id, role) => api.patch(`/admin/users/${id}/role`, { role }),
-  updateUserSpecialization: (id, specialization) => api.patch(`/admin/users/${id}/specialization`, { specialization }),
-  toggleUserBlock: (id) => api.patch(`/admin/users/${id}/block`),
-  deleteUser: (id) => api.delete(`/admin/users/${id}`),
-  getQuizResults: () => api.get('/admin/quiz-results'),
+export const reviewsApi = {
+  getByCourse: (courseId) => api.get(`/reviews/course/${courseId}`),
+  create: (data) => api.post('/reviews/', data),
+  update: (id, data) => api.patch(`/reviews/${id}`, data),
+  delete: (id) => api.delete(`/reviews/${id}`),
 }
 
 export const commentsApi = {
@@ -164,14 +93,11 @@ export const commentsApi = {
   delete: (id) => api.delete(`/comments/${id}`),
 }
 
-export const reviewsApi = {
-  getByCourse: (courseId) => api.get(`/reviews/course/${courseId}`),
-  getStats: (courseId) => api.get(`/reviews/course/${courseId}/stats`),
-  create: (data) => api.post('/reviews/', data),
-  update: (id, data) => api.patch(`/reviews/${id}`, data),
-  delete: (id) => api.delete(`/reviews/${id}`),
-  respond: (id, response) => api.post(`/reviews/${id}/respond`, { response }),
-  getMy: () => api.get('/reviews/my'),
+export const templatesApi = {
+  getAll: () => api.get('/templates/'),
+  create: (data) => api.post('/templates/', data),
+  update: (id, data) => api.patch(`/templates/${id}`, data),
+  delete: (id) => api.delete(`/templates/${id}`),
 }
 
 export const notificationsApi = {
@@ -181,5 +107,40 @@ export const notificationsApi = {
   markAllRead: () => api.post('/notifications/mark-all-read'),
 }
 
-export { api }
+export const adminApi = {
+  getUsers: (params) => api.get('/admin/users', { params }),
+  getStats: () => api.get('/admin/stats'),
+  updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
+  deleteUser: (id) => api.delete(`/admin/users/${id}`),
+  updateRole: (id, data) => api.patch(`/admin/users/${id}/role`, data),
+  toggleBlock: (id) => api.post(`/admin/users/${id}/toggle-block`),
+}
+
+export const instrumentsApi = {
+  getAll: (params) => api.get('/instruments/', { params }),
+  getById: (id) => api.get(`/instruments/${id}`),
+  create: (data) => api.post('/instruments/', data),
+  update: (id, data) => api.patch(`/instruments/${id}`, data),
+  delete: (id) => api.delete(`/instruments/${id}`),
+}
+
+export const practiceApi = {
+  getQuestions: (params) => api.get('/practice/questions', { params }),
+  getQuestion: (id) => api.get(`/practice/questions/${id}`),
+  submitAnswer: (id, data) => api.post(`/practice/questions/${id}/answer`, data),
+}
+
+export const learningPathsApi = {
+  getAll: (params) => api.get('/learning-paths/', { params }),
+  getById: (id) => api.get(`/learning-paths/${id}`),
+  create: (data) => api.post('/learning-paths/', data),
+  updateCourses: (id, courses) => api.put(`/learning-paths/${id}/courses`, courses),
+}
+
+export const certificatesApi = {
+  getMy: () => api.get('/certificates/my'),
+  verify: (code) => api.post('/certificates/verify', { verification_code: code }),
+  issue: (courseId, userId) => api.post('/certificates/issue', { course_id: courseId, user_id: userId }),
+}
+
 export default api

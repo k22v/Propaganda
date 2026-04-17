@@ -4,9 +4,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from datetime import timedelta
 from app.database import get_db
-from app.models import User, Enrollment, Review, Course
+from app.models import User, Enrollment, Review, Course, RefreshToken
 from app.schemas import UserCreate, UserResponse, Token, UserUpdateAvatar, UserUpdateProfile, PasswordChange
-from app.auth import verify_password, get_password_hash, create_access_token, get_current_active_user
+from app.auth import (
+    verify_password, get_password_hash, create_access_token, get_current_active_user,
+    create_refresh_token, save_refresh_token, verify_refresh_token, revoke_refresh_token,
+    revoke_all_user_tokens, COOKIE_SECURE, COOKIE_SAMESITE, ACCESS_TOKEN_COOKIE_NAME, REFRESH_TOKEN_COOKIE_NAME
+)
 from app.config import settings
 from app.limiter import limiter
 from app.logging_utils import log_activity, get_logger
@@ -76,7 +80,6 @@ async def login(request: Request,
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Неверный логин или пароль",
-                headers={"WWW-Authenticate": "Bearer"},
             )
 
         if not user.is_active:
@@ -90,11 +93,42 @@ async def login(request: Request,
 
         from datetime import datetime
         user.last_login = datetime.utcnow()
+        
+        refresh_token = create_refresh_token()
+        await save_refresh_token(
+            db=db,
+            user_id=user.id,
+            token=refresh_token,
+            user_agent=request.headers.get("user-agent"),
+            ip_address=request.client.host if request.client else None
+        )
+        
         await db.commit()
 
         access_token = create_access_token(
             data={"sub": str(user.id)},
             expires_delta=timedelta(minutes=expire_minutes)
+        )
+        
+        max_age = settings.remember_me_expire_days * 24 * 60 * 60 if remember_me else None
+        
+        response.set_cookie(
+            key=ACCESS_TOKEN_COOKIE_NAME,
+            value=access_token,
+            httponly=True,
+            secure=COOKIE_SECURE,
+            samesite=COOKIE_SAMESITE,
+            max_age=max_age,
+            path="/"
+        )
+        response.set_cookie(
+            key=REFRESH_TOKEN_COOKIE_NAME,
+            value=refresh_token,
+            httponly=True,
+            secure=COOKIE_SECURE,
+            samesite=COOKIE_SAMESITE,
+            max_age=max_age,
+            path="/"
         )
         
         await log_activity(
@@ -159,8 +193,77 @@ async def update_profile(
 
 
 @router.post("/logout")
-async def logout():
+async def logout(
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db)
+):
+    refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
+    if refresh_token:
+        await revoke_refresh_token(db, refresh_token)
+    
+    response.delete_cookie(ACCESS_TOKEN_COOKIE_NAME, path="/")
+    response.delete_cookie(REFRESH_TOKEN_COOKIE_NAME, path="/")
+    
     return {"message": "Logged out"}
+
+
+@router.post("/refresh")
+async def refresh_token(
+    request: Request,
+    response: Response,
+    db: AsyncSession = Depends(get_db)
+):
+    refresh_token = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="No refresh token")
+    
+    user = await verify_refresh_token(db, refresh_token)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+    
+    if not user.is_active:
+        raise HTTPException(status_code=403, detail="User account is disabled")
+    
+    await revoke_refresh_token(db, refresh_token)
+    
+    new_refresh_token = create_refresh_token()
+    await save_refresh_token(
+        db=db,
+        user_id=user.id,
+        token=new_refresh_token,
+        user_agent=request.headers.get("user-agent"),
+        ip_address=request.client.host if request.client else None
+    )
+    await db.commit()
+    
+    access_token = create_access_token(
+        data={"sub": str(user.id)},
+        expires_delta=timedelta(minutes=settings.access_token_expire_minutes)
+    )
+    
+    max_age = settings.remember_me_expire_days * 24 * 60 * 60
+    
+    response.set_cookie(
+        key=ACCESS_TOKEN_COOKIE_NAME,
+        value=access_token,
+        httponly=True,
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
+        max_age=max_age,
+        path="/"
+    )
+    response.set_cookie(
+        key=REFRESH_TOKEN_COOKIE_NAME,
+        value=new_refresh_token,
+        httponly=True,
+        secure=COOKIE_SECURE,
+        samesite=COOKIE_SAMESITE,
+        max_age=max_age,
+        path="/"
+    )
+    
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/change-password")
