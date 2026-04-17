@@ -7,6 +7,7 @@ from app.database import get_db
 from app.models import User, Review, Course, Enrollment, Notification
 from app.schemas import ReviewCreate, ReviewResponse, ReviewUpdate
 from app.auth import get_current_active_user, get_current_user_optional
+from app.policies import check_admin
 
 router = APIRouter(prefix="/reviews", tags=["reviews"])
 
@@ -199,8 +200,7 @@ async def respond_to_review(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if not current_user.is_superuser and current_user.role != "admin":
-        raise HTTPException(status_code=403, detail="Только администратор может отвечать на отзывы")
+    check_admin(current_user)
     
     result = await db.execute(
         select(Review).options(selectinload(Review.user)).where(Review.id == review_id)

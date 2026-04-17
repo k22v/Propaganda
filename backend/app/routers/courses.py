@@ -16,7 +16,7 @@ from app.schemas import (
     ReorderRequest
 )
 from app.auth import get_current_active_user
-from app.policies import can_edit_course, require_permission, Permission
+from app.policies import can_edit_course, require_permission, Permission, check_teacher_or_admin
 from app.limiter import limiter
 from app.sanitize import sanitize_html
 from app.upload_utils import (
@@ -151,8 +151,7 @@ async def create_course(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if not current_user.is_superuser and current_user.role not in ("admin", "teacher"):
-        raise HTTPException(status_code=403, detail="Not enough permissions")
+    check_teacher_or_admin(current_user)
 
     try:
         course = Course(

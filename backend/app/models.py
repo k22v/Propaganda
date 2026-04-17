@@ -299,3 +299,59 @@ class Notification(Base):
     __table_args__ = (
         {'extend_existing': True}
     )
+
+
+class LearningPath(Base):
+    __tablename__ = "learning_paths"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(255))
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    specialization: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    target_role: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    is_published: Mapped[bool] = mapped_column(default=False)
+    order: Mapped[int] = mapped_column(default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+    courses: Mapped[List["LearningPathCourse"]] = relationship(
+        "LearningPathCourse", 
+        back_populates="path", 
+        order_by="LearningPathCourse.order",
+        cascade="all, delete-orphan"
+    )
+
+
+class LearningPathCourse(Base):
+    __tablename__ = "learning_path_courses"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    learning_path_id: Mapped[int] = mapped_column(ForeignKey("learning_paths.id"), index=True)
+    course_id: Mapped[int] = mapped_column(ForeignKey("courses.id"), index=True)
+    order: Mapped[int] = mapped_column(default=0)
+    is_required: Mapped[bool] = mapped_column(default=True)
+
+    path: Mapped["LearningPath"] = relationship("LearningPath", back_populates="courses")
+    course: Mapped["Course"] = relationship("Course")
+
+
+class Certificate(Base):
+    __tablename__ = "certificates"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    course_id: Mapped[int] = mapped_column(ForeignKey("courses.id"), index=True)
+    learning_path_id: Mapped[Optional[int]] = mapped_column(ForeignKey("learning_paths.id"), nullable=True)
+    certificate_number: Mapped[str] = mapped_column(String(100), unique=True)
+    issued_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    ce_credits: Mapped[float] = mapped_column(default=0.0)
+    pdf_url: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+    verification_code: Mapped[str] = mapped_column(String(50), unique=True)
+
+    user: Mapped["User"] = relationship("User")
+    course: Mapped["Course"] = relationship("Course")
+    learning_path: Mapped[Optional["LearningPath"]] = relationship("LearningPath")
+
+    __table_args__ = (
+        {'extend_existing': True}
+    )

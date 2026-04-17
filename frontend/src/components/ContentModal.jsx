@@ -311,7 +311,6 @@ function ContentModal({ isOpen, onClose, chapterId, onSave }) {
             </div>
           </div>
         )}
-      )}
 
       {showConfirmClose && (
         <div className="modal-overlay" onClick={() => setShowConfirmClose(false)}>

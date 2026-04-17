@@ -34,17 +34,31 @@ async def register(request: Request, user_data: UserCreate, db: AsyncSession = D
     )
     db.add(user)
     await db.commit()
-    await db.refresh(user)
+    
+    user_id = user.id
+    user_username = user.username
     
     await log_activity(
         db=db,
         action="register",
-        user_id=user.id,
-        details=f"New user registered: {user.username}",
+        user_id=user_id,
+        details=f"New user registered: {user_username}",
         ip_address=request.client.host if request.client else None
     )
     
-    return user
+    return UserResponse(
+        id=user.id,
+        email=user.email,
+        username=user.username,
+        full_name=user.full_name,
+        specialization=user.specialization,
+        role=user.role,
+        is_active=user.is_active,
+        is_superuser=user.is_superuser,
+        avatar_id=user.avatar_id,
+        created_at=user.created_at,
+        last_login=user.last_login
+    )
 
 
 @router.post("/login", response_model=Token)

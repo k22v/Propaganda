@@ -19,9 +19,14 @@ from app.routers.comments import router as comments_router
 from app.routers.reviews import router as reviews_router
 from app.routers.notifications import router as notifications_router
 from app.limiter import limiter
+from app.sentry_config import init_sentry
+from app.logging_utils import configure_logging
 import os
 import logging
 import asyncio
+
+configure_logging()
+init_sentry()
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,6 +53,10 @@ app.include_router(practice_router, prefix="/api")
 app.include_router(comments_router, prefix="/api")
 app.include_router(reviews_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
+
+from app.routers.learning_paths import router as learning_paths_router, certificate_router
+app.include_router(learning_paths_router, prefix="/api")
+app.include_router(certificate_router, prefix="/api")
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)

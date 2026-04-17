@@ -90,8 +90,8 @@ function InstrumentDetail() {
           <div style={{ textAlign: 'center' }}>
             <p style={{ marginBottom: '1.5rem' }}>Войдите для просмотра информации об инструменте</p>
             <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-              <Button as={Link} to="/login">Войти</Button>
-              <Button as={Link} to="/register" variant="secondary">Регистрация</Button>
+              <Link to="/login"><Button>Войти</Button></Link>
+              <Link to="/register"><Button variant="secondary">Регистрация</Button></Link>
             </div>
           </div>
         </Card>

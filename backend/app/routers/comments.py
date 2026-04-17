@@ -8,6 +8,7 @@ from app.database import get_db
 from app.models import User, Comment, Enrollment, LessonContent, Course, Chapter, Section
 from app.schemas import CommentCreate, CommentResponse
 from app.auth import get_current_active_user, get_current_user_optional
+from app.policies import can_delete_comment
 
 router = APIRouter(prefix="/comments", tags=["comments"])
 
@@ -116,7 +117,7 @@ async def delete_comment(
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
     
-    if comment.user_id != current_user.id and not current_user.is_superuser:
+    if not can_delete_comment(current_user, comment.user_id):
         raise HTTPException(status_code=403, detail="Not authorized")
     
     await db.delete(comment)

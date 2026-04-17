@@ -12,9 +12,10 @@
 
 ### Backend
 - FastAPI + SQLAlchemy + SQLite (async)
-- Роутеры: auth, courses, quizzes, reviews, comments, templates, admin, instruments, practice, notifications
+- Роутеры: auth, courses, quizzes, reviews, comments, templates, admin, instruments, practice, notifications, learning-paths, certificates
 - ~5000+ строк кода
 - Docker-ready (docker-compose.yml)
+- Sentry monitoring + structured logging
 
 ### Frontend  
 - React 18 + Vite + TanStack Query
@@ -30,7 +31,7 @@
 - VideoPlayer with subtitles and speed control
 
 ### БД
-- 14 таблиц: users, courses, sections, chapters, lesson_contents, enrollments, lesson_progress, quizzes, questions, answers, quiz_attempts, comments, templates, instruments, practice_questions, reviews, notifications
+- 17 таблиц: users, courses, sections, chapters, lesson_contents, enrollments, lesson_progress, quizzes, questions, answers, quiz_attempts, comments, templates, instruments, practice_questions, reviews, notifications, learning_paths, learning_path_courses, certificates
 
 ---
 
@@ -187,6 +188,53 @@ Sections → chapters → contents → progress - классический N+1. 
 
 ### Установлено
 - lucide-react для иконок
+- Playwright для e2e тестирования
+- pytest + pytest-asyncio для backend тестов
+
+### Backend обновления
+1. **conftest.py** - исправлены async fixtures с `@pytest_asyncio.fixture`
+2. **pyproject.toml** - добавлена конфигурация pytest `[tool.pytest.ini_options]`
+3. **auth.py** - register endpoint возвращает `UserResponse` вместо ORM объекта
+4. **test_auth.py** - фиксирован параметр `client` в `test_login_inactive_user`
+5. **test_permissions.py** - фиксированы параметры `auth_headers`, `superuser` в тестах
+6. **policies.py** - расширен с функциями:
+   - `check_teacher_or_admin()` - проверка преподавателя/админа
+   - `check_admin()` - проверка админа
+   - `can_manage_quiz()` - проверка прав на управление квизами
+   - `can_respond_to_review()` - проверка прав на ответ к отзывы
+   - `can_delete_comment()` - проверка прав на удаление комментария
+7. **routers** - обновлены на использование policy layer:
+   - `courses.py` - `check_teacher_or_admin()` для create_course
+   - `reviews.py` - `check_admin()` для respond_to_review
+   - `comments.py** - `can_delete_comment()` для delete_comment
+   - `quizzes.py** - `can_manage_quiz()` для create_quiz
+
+### Infrastructure updates
+1. **sentry_config.py** - Sentry monitoring integration
+2. **logging_utils.py** - Structured logging with structlog
+3. **main.py** - Sentry and logging initialization
+
+### Dental LMS features
+1. **models.py** - добавлены модели:
+   - `LearningPath` - треки обучения для специализаций
+   - `LearningPathCourse` - курсы в треке
+   - `Certificate` - сертификаты за курсы
+2. **schemas.py** - добавлены схемы для LearningPath и Certificate
+3. **routers/learning_paths.py** - endpoints для треков и сертификатов:
+   - `GET /api/learning-paths/` - список треков
+   - `GET /api/learning-paths/{id}` - детали трека
+   - `POST /api/learning-paths/` - создание трека
+   - `PUT /api/learning-paths/{id}/courses` - обновление курсов в треке
+   - `GET /api/certificates/my` - мои сертификаты
+   - `GET /api/certificates/verify` - проверка сертификата
+   - `POST /api/certificates/issue` - выдача сертификата
+
+### Backend tests (63 tests passing)
+- `tests/test_admin.py` - 12 тестов для admin endpoints
+- `tests/test_auth.py` - 11 тестов для аутентификации
+- `tests/test_comments.py` - 4 теста для комментариев
+- `tests/test_permissions.py` - 11 тестов для permissions и курсов
+- `tests/test_rbac.py` - 25 тестов для RBAC policies
 
 ### Frontend обновления
 1. **ui.jsx** - создан компонент ui/index.jsx с базовыми компонентами (Badge, Card, Button, ProgressBar, Avatar, EmptyState, Skeleton, Tabs, Modal, DropdownMenu)
@@ -224,6 +272,13 @@ Sections → chapters → contents → progress - классический N+1. 
 25. **ProfileComponents.jsx** - обновлены иконки статистики на lucide-react
 26. **AdminComponents.jsx** - обновлены иконки AdminStatsRow на lucide-react
 
+### Frontend e2e tests (9 tests passing)
+- `tests/auth.spec.ts` - 4 теста для аутентификации
+- `tests/courses.spec.ts` - 3 теста для курсов
+- `tests/admin.spec.ts` - 3 теста для админки (1 skipped)
+- `playwright.config.ts` - конфигурация с webServer для backend и frontend
+- `package.json` - добавлены `test:e2e` и `test:e2e:ui` scripts
+
 ---
 
 ## Dev команды
@@ -233,9 +288,17 @@ Sections → chapters → contents → progress - классический N+1. 
 cd backend
 python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
+# Backend tests
+cd backend
+C:\Users\ADMIN\AppData\Roaming\Python\Python310\Scripts\pytest.exe tests/ -v
+
 # Frontend  
 cd frontend
 npm run dev
+
+# Frontend e2e tests
+cd frontend
+npm run test:e2e
 
 # Docker
 docker-compose up -d

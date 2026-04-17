@@ -217,3 +217,38 @@ def can_view_course(user: Optional[User], course_is_published: bool, course_auth
     if user and user.id == course_author_id:
         return True
     return False
+
+
+def check_teacher_or_admin(user: User) -> None:
+    """Raise HTTPException if user is not a teacher or admin."""
+    if not user.is_superuser and user.role not in ("admin", "teacher"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Только преподаватели и администраторы могут выполнять это действие"
+        )
+
+
+def check_admin(user: User) -> None:
+    """Raise HTTPException if user is not an admin."""
+    if not user.is_superuser and user.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Только администраторы могут выполнять это действие"
+        )
+
+
+def can_manage_quiz(user: User) -> bool:
+    """Check if user can manage (create/edit/delete) quizzes."""
+    return user.is_superuser or user.role in ("admin", "teacher")
+
+
+def can_respond_to_review(user: User) -> bool:
+    """Check if user can respond to reviews."""
+    return user.is_superuser or user.role == "admin"
+
+
+def can_delete_comment(user: User, comment_author_id: int) -> bool:
+    """Check if user can delete a comment."""
+    if user.is_superuser or user.role == "admin":
+        return True
+    return user.id == comment_author_id

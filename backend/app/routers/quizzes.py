@@ -14,6 +14,7 @@ from app.schemas import (
 )
 from app.auth import get_current_active_user
 from app.limiter import limiter
+from app.policies import can_manage_quiz
 
 router = APIRouter(prefix="/quizzes", tags=["quizzes"])
 
@@ -24,8 +25,8 @@ async def create_quiz(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
-    if not current_user.is_superuser and current_user.role != 'admin':
-        raise HTTPException(status_code=403, detail="Только администраторы могут создавать тесты")
+    if not can_manage_quiz(current_user):
+        raise HTTPException(status_code=403, detail="Недостаточно прав для создания тестов")
     
     result = await db.execute(
         select(LessonContent).where(LessonContent.id == quiz_data.lesson_id).options(selectinload(LessonContent.chapter).selectinload(Chapter.section))
@@ -42,7 +43,7 @@ async def create_quiz(
     course = result.scalar_one_or_none()
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
-    if course.author_id != current_user.id and not current_user.is_superuser:
+    if course.author_id != current_user.id and not can_manage_quiz(current_user):
         raise HTTPException(status_code=403, detail="Not authorized to create quiz for this lesson")
 
     quiz = Quiz(

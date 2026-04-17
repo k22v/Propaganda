@@ -527,3 +527,73 @@ class ReviewUpdate(BaseModel):
         if v is not None and (v < 1 or v > 5):
             raise ValueError('Рейтинг должен быть от 1 до 5')
         return v
+
+
+class LearningPathCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    specialization: Optional[str] = None
+    target_role: Optional[str] = None
+    is_published: bool = False
+    order: int = 0
+
+
+class LearningPathUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    specialization: Optional[str] = None
+    target_role: Optional[str] = None
+    is_published: Optional[bool] = None
+    order: Optional[int] = None
+
+
+class LearningPathCourseCreate(BaseModel):
+    course_id: int
+    order: int = 0
+    is_required: bool = True
+
+
+class LearningPathResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    title: str
+    description: Optional[str]
+    specialization: Optional[str]
+    target_role: Optional[str]
+    is_published: bool
+    order: int
+    created_at: datetime
+    courses: Optional[List["LearningPathCourseResponse"]] = None
+
+
+class LearningPathCourseResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    learning_path_id: int
+    course_id: int
+    order: int
+    is_required: bool
+    course: Optional[CourseResponse] = None
+
+
+class CertificateResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int
+    user_id: int
+    course_id: int
+    learning_path_id: Optional[int]
+    certificate_number: str
+    issued_at: datetime
+    expires_at: Optional[datetime]
+    ce_credits: float
+    pdf_url: Optional[str]
+    verification_code: str
+    user: Optional[UserResponse] = None
+    course: Optional[CourseResponse] = None
+
+
+class CertificateVerify(BaseModel):
+    verification_code: str

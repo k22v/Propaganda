@@ -11,12 +11,17 @@ function MyCourses() {
   const [courses, setCourses] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [isSuperuser, setIsSuperuser] = useState(false)
+  const [canCreateCourse, setCanCreateCourse] = useState(false)
 
   useEffect(() => {
     authApi.getMe()
-      .then(({ data }) => setIsSuperuser(data?.is_superuser === true || data?.is_superuser === 1))
-      .catch(() => setIsSuperuser(false))
+      .then(({ data }) => setCanCreateCourse(
+        data?.is_superuser === true ||
+        data?.is_superuser === 1 ||
+        data?.role === 'admin' ||
+        data?.role === 'teacher'
+      ))
+      .catch(() => setCanCreateCourse(false))
   }, [])
 
   useEffect(() => {
@@ -47,11 +52,13 @@ function MyCourses() {
       <ToastContainer toast={toast} onClose={closeToast} />
       
       <div className="page-header">
-        <h1>{isSuperuser ? 'Все курсы' : 'Мои курсы'}</h1>
-        {isSuperuser && (
-          <Button as={Link} to="/create">
-            <Plus size={16} /> Создать курс
-          </Button>
+        <h1>{canCreateCourse ? 'Все курсы' : 'Мои курсы'}</h1>
+        {canCreateCourse && (
+          <Link to="/create">
+            <Button>
+              <Plus size={16} /> Создать курс
+            </Button>
+          </Link>
         )}
       </div>
       
@@ -61,18 +68,22 @@ function MyCourses() {
             <BookOpen size={48} />
             <h3 className="empty-title">Пока нет курсов</h3>
             <p className="empty-description">
-              {isSuperuser 
+              {canCreateCourse 
                 ? 'Создайте свой первый курс для начала работы' 
                 : 'Запишитесь на курс в разделе "Все курсы"'}
             </p>
-            {isSuperuser ? (
-              <Button as={Link} to="/create" style={{ marginTop: '1rem' }}>
-                <Plus size={16} /> Создать курс
-              </Button>
+            {canCreateCourse ? (
+              <Link to="/create">
+                <Button style={{ marginTop: '1rem' }}>
+                  <Plus size={16} /> Создать курс
+                </Button>
+              </Link>
             ) : (
-              <Button as={Link} to="/courses" variant="secondary" style={{ marginTop: '1rem' }}>
-                <BookOpen size={16} /> К каталогу курсов
-              </Button>
+              <Link to="/courses">
+                <Button variant="secondary" style={{ marginTop: '1rem' }}>
+                  <BookOpen size={16} /> К каталогу курсов
+                </Button>
+              </Link>
             )}
           </div>
         </Card>
@@ -105,14 +116,18 @@ function MyCourses() {
                 </div>
               </Link>
               <div className="course-card-footer" style={{ padding: '0 1.25rem 1.25rem', display: 'flex', gap: '0.5rem' }}>
-                <Button as={Link} to={`/courses/${course.id}`} variant="secondary" size="sm" style={{ flex: 1 }}>
-                  <ArrowRight size={14} /> Открыть
-                </Button>
-                {isSuperuser && (
+                <Link to={`/courses/${course.id}`} style={{ flex: 1 }}>
+                  <Button variant="secondary" size="sm" style={{ width: '100%' }}>
+                    <ArrowRight size={14} /> Открыть
+                  </Button>
+                </Link>
+                {canCreateCourse && (
                   <>
-                    <Button as={Link} to={`/courses/${course.id}`} size="sm" style={{ flex: 1 }}>
-                      <Edit size={14} /> Редакт.
-                    </Button>
+                    <Link to={`/courses/${course.id}`} style={{ flex: 1 }}>
+                      <Button size="sm" style={{ width: '100%' }}>
+                        <Edit size={14} /> Редакт.
+                      </Button>
+                    </Link>
                     <Button variant="danger" size="sm" onClick={() => handleDelete(course.id)}>
                       <Trash2 size={14} />
                     </Button>

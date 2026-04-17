@@ -362,7 +362,7 @@ function CourseDetail() {
               <div className="locked-message">
                 <Lock size={48} style={{ color: '#ef4444', marginBottom: '1rem' }} />
                 <p>{course.error || 'Доступ к этому курсу запрещён'}</p>
-                <Button as={Link} to="/courses" style={{ marginTop: '1rem' }}>К курсам</Button>
+                <Link to="/courses"><Button style={{ marginTop: '1rem' }}>К курсам</Button></Link>
               </div>
             </Card>
           ) : course.is_published ? (
@@ -372,8 +372,8 @@ function CourseDetail() {
                   <Lock size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
                   <p>Войдите или зарегистрируйтесь для доступа к курсу</p>
                   <div className="locked-actions">
-                    <Button as={Link} to="/login">Войти</Button>
-                    <Button as={Link} to="/register" variant="secondary">Регистрация</Button>
+                    <Link to="/login"><Button>Войти</Button></Link>
+                    <Link to="/register"><Button variant="secondary">Регистрация</Button></Link>
                   </div>
                 </div>
               </Card>

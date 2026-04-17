@@ -63,12 +63,12 @@ function NotFound() {
         <p>Похоже, этот зуб выпал из нашей базы данных</p>
         
         <div className="not-found-actions">
-          <Button as={Link} to="/">
-            <Home size={16} /> На главную
-          </Button>
-          <Button as={Link} to="/courses" variant="secondary">
-            <BookOpen size={16} /> К курсам
-          </Button>
+          <Link to="/">
+            <Button><Home size={16} /> На главную</Button>
+          </Link>
+          <Link to="/courses">
+            <Button variant="secondary"><BookOpen size={16} /> К курсам</Button>
+          </Link>
         </div>
       </div>
 
