@@ -1,65 +1,60 @@
 import axios from 'axios'
 
+const TOKEN_KEY = 'access_token'
+
+const getToken = () => localStorage.getItem(TOKEN_KEY)
+const setToken = (token) => localStorage.setItem(TOKEN_KEY, token)
+export const clearToken = () => localStorage.removeItem(TOKEN_KEY)
+
 const api = axios.create({
   baseURL: '/api',
-  withCredentials: true,
+})
+
+api.interceptors.request.use((config) => {
+  const token = getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
 })
 
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config
-
-    if (!error.response) {
-      return Promise.reject(error)
+  (error) => {
+    if (error.response?.status === 401) {
+      clearToken()
     }
-
-    const isRefreshCall = originalRequest?.url?.includes('/auth/refresh')
-
-    if (
-      error.response.status === 401 &&
-      !originalRequest?._retry &&
-      !isRefreshCall
-    ) {
-      originalRequest._retry = true
-
-      try {
-        await api.post('/auth/refresh')
-        return api(originalRequest)
-      } catch (refreshError) {
-        clearCookies()
-        window.location.href = '/login'
-        return Promise.reject(refreshError)
-      }
-    }
-
     return Promise.reject(error)
   }
 )
 
-export const clearCookies = () => {
-  document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-  document.cookie = 'refresh_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
-}
-
-export const clearToken = clearCookies
-
-export { api }
-
 export const authApi = {
   register: (data) => api.post('/auth/register', data),
+
   login: (data) => {
     const formData = new URLSearchParams()
     formData.append('username', data.username)
     formData.append('password', data.password)
+
     if (data.remember_me) {
       formData.append('scope', 'remember_me')
     }
+
     return api.post('/auth/login', formData, {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).then((res) => {
+      if (res.data.access_token) {
+        setToken(res.data.access_token)
+      }
+      return res
     })
   },
-  logout: () => api.post('/auth/logout'),
+
+  logout: () => {
+    clearToken()
+    return api.post('/auth/logout')
+  },
+
   getMe: () => api.get('/auth/me'),
   getProfileStats: () => api.get('/auth/profile-stats'),
   updateAvatar: (avatarId) => api.put('/auth/avatar', { avatar_id: avatarId }),
@@ -94,6 +89,8 @@ export const quizzesApi = {
   submit: (id, data) => api.post(`/quizzes/${id}/submit`, data),
   getResults: (attemptId) => api.get(`/quizzes/results/${attemptId}`),
 }
+
+export const quizApi = quizzesApi
 
 export const reviewsApi = {
   getByCourse: (courseId) => api.get(`/reviews/course/${courseId}`),
@@ -158,6 +155,5 @@ export const certificatesApi = {
   issue: (courseId, userId) => api.post('/certificates/issue', { course_id: courseId, user_id: userId }),
 }
 
-export const quizApi = quizzesApi
-
+export { api }
 export default api
