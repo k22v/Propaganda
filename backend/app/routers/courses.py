@@ -16,7 +16,7 @@ from app.schemas import (
     ReorderRequest
 )
 from app.auth import get_current_active_user
-from app.policies import can_edit_course, require_permission, Permission, check_teacher_or_admin
+from app.policies import can_edit_course, can_view_course, require_permission, Permission, check_teacher_or_admin
 from app.limiter import limiter
 from app.sanitize import sanitize_html
 from app.upload_utils import (
@@ -113,11 +113,27 @@ async def get_my_courses(
             select(Course)
             .options(selectinload(Course.author))
         )
+    elif current_user.role in ("admin", "teacher"):
+        enrolled_course_ids = (
+            select(Enrollment.course_id)
+            .where(Enrollment.user_id == current_user.id)
+        )
+        
+        result = await db.execute(
+            select(Course)
+            .where(
+                or_(
+                    Course.author_id == current_user.id,
+                    Course.id.in_(enrolled_course_ids)
+                )
+            )
+            .options(selectinload(Course.author))
+        )
     else:
         result = await db.execute(
             select(Course)
-            .join(Enrollment).join(User)
-            .where(User.id == current_user.id)
+            .join(Enrollment, Enrollment.course_id == Course.id)
+            .where(Enrollment.user_id == current_user.id)
             .options(selectinload(Course.author))
         )
     courses = result.scalars().all()
@@ -186,10 +202,19 @@ async def get_course(
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
 
+        if not can_view_course(current_user, course.is_published, course.author_id):
+            raise HTTPException(status_code=403, detail="Course not available")
+
+        privileged_viewer = (
+            current_user.is_superuser or
+            current_user.role in ("admin", "teacher") or
+            current_user.id == course.author_id
+        )
+
         user_spec = current_user.specialization
         course_spec = course.specialization
-        
-        if not current_user.is_superuser:
+
+        if not privileged_viewer:
             if course_spec and user_spec != course_spec:
                 raise HTTPException(
                     status_code=403,
@@ -202,7 +227,7 @@ async def get_course(
                 )
 
         now = datetime.utcnow()
-        if course.start_date and course.end_date and not current_user.is_superuser:
+        if course.start_date and course.end_date and not privileged_viewer:
             if now < course.start_date:
                 raise HTTPException(
                     status_code=403,

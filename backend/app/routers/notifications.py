@@ -5,6 +5,7 @@ from typing import List
 from app.database import get_db
 from app.models import User, Notification
 from app.auth import get_current_active_user
+from app.policies import check_admin
 from pydantic import BaseModel
 from datetime import datetime
 
@@ -12,16 +13,15 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 
 
 class NotificationResponse(BaseModel):
+    model_config = {"from_attributes": True}
+    
     id: int
     user_id: int
     type: str
     message: str
-    link: str | None
+    link: str | None = None
     is_read: bool
     created_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 class CreateNotification(BaseModel):
@@ -96,8 +96,11 @@ async def mark_all_as_read(
 async def create_notification(
     data: CreateNotification,
     user_id: int,
+    current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
+    check_admin(current_user)
+    
     notification = Notification(
         user_id=user_id,
         type=data.type,

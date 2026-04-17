@@ -94,10 +94,9 @@ function CourseDetail() {
   }
 
   const isAuthor = currentUser && course && String(currentUser.id) === String(course.author_id)
-  const isSuperuser = currentUser && currentUser.is_superuser
-  const canEdit = isAuthor || isSuperuser
-
-  console.log('DEBUG: currentUser:', currentUser, 'isSuperuser:', isSuperuser)
+  const isSuperuser = currentUser && (currentUser.is_superuser || currentUser.role === 'admin')
+  const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.is_superuser)
+  const canEdit = isAuthor || isAdmin
 
   const wrappedApi = withToastHandler({
     addSection: async () => {

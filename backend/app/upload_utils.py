@@ -66,7 +66,6 @@ def validate_file(filename: str, content_type: str, file_size: int) -> None:
             'application/x-executable',
             'application/x-msdownload',
             'application/x-sh',
-            'application/pdf',
         ]
         if content_type in dangerous_types:
             raise HTTPException(

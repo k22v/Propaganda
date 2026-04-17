@@ -11,18 +11,33 @@ function MyCourses() {
   const [courses, setCourses] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
   const [canCreateCourse, setCanCreateCourse] = useState(false)
 
   useEffect(() => {
     authApi.getMe()
-      .then(({ data }) => setCanCreateCourse(
-        data?.is_superuser === true ||
-        data?.is_superuser === 1 ||
-        data?.role === 'admin' ||
-        data?.role === 'teacher'
-      ))
-      .catch(() => setCanCreateCourse(false))
+      .then(({ data }) => {
+        setCurrentUser(data)
+        setCanCreateCourse(
+          data?.is_superuser === true ||
+          data?.is_superuser === 1 ||
+          data?.role === 'admin' ||
+          data?.role === 'teacher'
+        )
+      })
+      .catch(() => {
+        setCurrentUser(null)
+        setCanCreateCourse(false)
+      })
   }, [])
+
+  const canManageCourse = (course) =>
+    !!currentUser && (
+      currentUser.is_superuser === true ||
+      currentUser.is_superuser === 1 ||
+      currentUser.role === 'admin' ||
+      String(currentUser.id) === String(course.author_id)
+    )
 
   useEffect(() => {
     coursesApi.getMy()
@@ -121,7 +136,7 @@ function MyCourses() {
                     <ArrowRight size={14} /> Открыть
                   </Button>
                 </Link>
-                {canCreateCourse && (
+                {canManageCourse(course) && (
                   <>
                     <Link to={`/courses/${course.id}`} style={{ flex: 1 }}>
                       <Button size="sm" style={{ width: '100%' }}>
