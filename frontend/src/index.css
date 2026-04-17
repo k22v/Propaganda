@@ -1,6 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-:root {
+:root,
+[data-theme="light"] {
   --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 45%, #1d4ed8 100%);
+  --color-primary-gradient-hover: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+  --color-primary-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
+  --color-primary-text: #ffffff;
   --color-secondary: #6b7280;
   --color-border: #e5e7eb;
   --color-bg: #f9fafb;
@@ -20,7 +26,12 @@
 }
 
 [data-theme="dark"] {
-  --color-primary: #e5e7eb;
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-primary-gradient: linear-gradient(135deg, #3b82f6 0%, #2563eb 45%, #1d4ed8 100%);
+  --color-primary-gradient-hover: linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%);
+  --color-primary-shadow: 0 10px 24px rgba(37, 99, 235, 0.28);
+  --color-primary-text: #ffffff;
   --color-secondary: #9ca3af;
   --color-border: rgba(255,255,255,0.1);
   --color-bg: #0a0a0f;
