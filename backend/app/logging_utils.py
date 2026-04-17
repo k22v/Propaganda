@@ -73,5 +73,6 @@ async def log_activity(
             ip_address=ip_address
         )
     except Exception as e:
-        print(f"Logging error: {e}")
+        logger = get_logger("activity")
+        logger.error("logging_error", error=str(e))
         await db.rollback()

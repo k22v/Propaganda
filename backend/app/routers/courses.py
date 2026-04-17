@@ -18,6 +18,7 @@ from app.schemas import (
 from app.auth import get_current_active_user
 from app.policies import can_edit_course, can_view_course, require_permission, Permission, check_teacher_or_admin
 from app.limiter import limiter
+from app.logging_utils import get_logger
 from app.sanitize import sanitize_html
 from app.upload_utils import (
     validate_file,
@@ -340,9 +341,8 @@ async def get_course(
     except HTTPException:
         raise
     except Exception as e:
-        print(f"get_course error: {e}")
-        import traceback
-        traceback.print_exc()
+        logger = get_logger("courses")
+        logger.error("get_course_error", course_id=course_id, error=str(e))
         raise HTTPException(status_code=500, detail="Internal server error")
 
 

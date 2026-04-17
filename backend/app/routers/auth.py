@@ -9,7 +9,7 @@ from app.schemas import UserCreate, UserResponse, Token, UserUpdateAvatar, UserU
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_active_user
 from app.config import settings
 from app.limiter import limiter
-from app.logging_utils import log_activity
+from app.logging_utils import log_activity, get_logger
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -116,8 +116,9 @@ async def login(request: Request,
         )
         raise
     except Exception as e:
-        print(f"Login error: {e}")
-        raise HTTPException(status_code=500, detail=f"Login error: {str(e)}")
+        logger = get_logger("auth")
+        logger.error("login_error", error=str(e))
+        raise HTTPException(status_code=500, detail="Login error")
 
 
 @router.get("/me", response_model=UserResponse)
@@ -152,10 +153,9 @@ async def update_profile(
         await db.refresh(current_user)
         return current_user
     except Exception as e:
-        import traceback
-        print(f"Error updating profile: {e}")
-        print(traceback.format_exc())
-        raise HTTPException(status_code=500, detail=str(e))
+        logger = get_logger("auth")
+        logger.error("update_profile_error", error=str(e))
+        raise HTTPException(status_code=500, detail="Error updating profile")
 
 
 @router.post("/logout")
@@ -184,13 +184,15 @@ async def get_profile_stats(
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
+    logger = get_logger("auth")
+    
     try:
         courses_count_result = await db.execute(
             select(func.count(Enrollment.id)).where(Enrollment.user_id == current_user.id)
         )
         courses_count = courses_count_result.scalar() or 0
     except Exception as e:
-        print(f"Error getting courses_count: {e}")
+        logger.error("profile_stats_error", operation="courses_count", error=str(e))
         courses_count = 0
     
     try:
@@ -202,7 +204,7 @@ async def get_profile_stats(
         )
         completed_count = completed_result.scalar() or 0
     except Exception as e:
-        print(f"Error getting completed_count: {e}")
+        logger.error("profile_stats_error", operation="completed_count", error=str(e))
         completed_count = 0
     
     try:
@@ -211,7 +213,7 @@ async def get_profile_stats(
         )
         reviews_count = reviews_count_result.scalar() or 0
     except Exception as e:
-        print(f"Error getting reviews_count: {e}")
+        logger.error("profile_stats_error", operation="reviews_count", error=str(e))
         reviews_count = 0
     
     try:
@@ -234,7 +236,7 @@ async def get_profile_stats(
                 "course_title": course_title
             })
     except Exception as e:
-        print(f"Error loading reviews: {e}")
+        logger.error("profile_stats_error", operation="reviews", error=str(e))
         reviews = []
     
     return {
