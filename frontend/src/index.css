@@ -434,17 +434,18 @@ h1, h2, h3, h4, h5, h6 {
   border: none;
   background: transparent;
   font-size: 1.5rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted, #9ca3af);
   cursor: pointer;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s;
 }
 
 .auth-close:hover {
   background: var(--color-bg);
-  color: var(--color-text);
+  color: var(--color-primary);
 }
 
 .login-dropdown h2 {

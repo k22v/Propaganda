@@ -79,7 +79,7 @@ function NotFound() {
           align-items: center;
           justify-content: center;
           padding: 2rem;
-          background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+          background: linear-gradient(135deg, #3b82f6 0%, #2563eb 50%, #1d4ed8 100%);
         }
         
         .not-found-content {
@@ -130,19 +130,18 @@ function NotFound() {
           font-size: 6rem;
           font-weight: 700;
           margin: 0;
-          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: white;
+          text-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         }
         
         .not-found-content h2 {
           font-size: 1.5rem;
           margin: 0.5rem 0 1rem;
+          color: rgba(255, 255, 255, 0.95);
         }
         
         .not-found-content p {
-          color: rgba(255, 255, 255, 0.7);
+          color: rgba(255, 255, 255, 0.75);
           margin-bottom: 2rem;
         }
         
@@ -151,6 +150,10 @@ function NotFound() {
           gap: 1rem;
           justify-content: center;
           flex-wrap: wrap;
+        }
+        
+        .not-found-actions a {
+          text-decoration: none;
         }
       `}</style>
     </div>
