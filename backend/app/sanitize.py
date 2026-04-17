@@ -92,15 +92,18 @@ def escape_html_content(content: str) -> str:
 # CSP header recommended policies
 CSP_POLICY = (
     "default-src 'self'; "
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+    "script-src 'self'; "
+    "style-src 'self' https://fonts.googleapis.com; "
     "img-src 'self' data: https: blob:; "
     "font-src 'self' https://fonts.gstatic.com; "
     "connect-src 'self' https:; "
-    "frame-ancestors 'self'; "
+    "frame-ancestors 'none'; "
     "base-uri 'self'; "
     "form-action 'self';"
 )
+
+# Strict-Transport-Security header
+HSTS_HEADER = "max-age=31536000; includeSubDomains"
 
 
 # X-Content-Type-Options header

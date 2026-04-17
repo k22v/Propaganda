@@ -9,7 +9,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from fastapi import Depends
 from app.database import init_db, get_db
-from app.sanitize import CSP_POLICY
+from app.sanitize import CSP_POLICY, HSTS_HEADER
 from app.routers import auth, courses, quizzes
 from app.routers.templates import router as templates_router
 from app.routers.instruments import router as instruments_router
@@ -18,6 +18,7 @@ from app.routers.practice import router as practice_router
 from app.routers.comments import router as comments_router
 from app.routers.reviews import router as reviews_router
 from app.routers.notifications import router as notifications_router
+from app.routers.learning_paths import router as learning_paths_router, certificate_router
 from app.limiter import limiter
 from app.sentry_config import init_sentry
 from app.logging_utils import configure_logging
@@ -53,8 +54,6 @@ app.include_router(practice_router, prefix="/api")
 app.include_router(comments_router, prefix="/api")
 app.include_router(reviews_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
-
-from app.routers.learning_paths import router as learning_paths_router, certificate_router
 app.include_router(learning_paths_router, prefix="/api")
 app.include_router(certificate_router, prefix="/api")
 
@@ -87,6 +86,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         # Referrer-Policy
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # HSTS
+        response.headers["Strict-Transport-Security"] = HSTS_HEADER
         return response
 
 

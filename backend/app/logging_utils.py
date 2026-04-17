@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.models_logging import UserActivityLog
+from app.models import UserActivityLog
 
 import structlog
 import logging
