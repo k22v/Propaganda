@@ -262,19 +262,23 @@ function CourseDetail() {
       )}
       <div className="course-header">
         <h1>{course.title}</h1>
-      {(canEdit || course?.is_enrolled) && (
-        <div className="course-actions">
-          <Button onClick={handleTogglePublish}>
-            {course.is_published ? <><EyeOff size={16} /> Снять с публикации</> : <><Eye size={16} /> Опубликовать</>}
-          </Button>
-          <Button variant="secondary" onClick={() => navigate(`/courses/${id}/practice`)}>
-            <ClipboardList size={16} /> Задачи
-          </Button>
-          <Button variant="secondary" onClick={() => navigate('/my-courses')}>
-            <ArrowLeft size={16} /> К моим курсам
-          </Button>
-        </div>
-      )}
+        {canEdit && (
+          <div className="course-actions">
+            <Button onClick={handleTogglePublish}>
+              {course.is_published ? <><EyeOff size={16} /> Снять с публикации</> : <><Eye size={16} /> Опубликовать</>}
+            </Button>
+          </div>
+        )}
+        {(course?.is_enrolled || canEdit) && (
+          <div className="course-actions" style={{ marginTop: '0.5rem' }}>
+            <Button variant="secondary" onClick={() => navigate(`/courses/${id}/practice`)}>
+              <ClipboardList size={16} /> Задачи
+            </Button>
+            <Button variant="secondary" onClick={() => navigate('/my-courses')}>
+              <ArrowLeft size={16} /> К моим курсам
+            </Button>
+          </div>
+        )}
       </div>
 
       {course.description && <p className="course-desc">{course.description}</p>}
