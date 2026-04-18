@@ -145,9 +145,9 @@ export const instrumentsApi = {
 }
 
 export const practiceApi = {
-  getQuestions: (courseId) => api.get(`/practice/course/${courseId}`),
-  getQuestion: (id) => api.get(`/practice/questions/${id}`),
-  submitAnswer: (id, data) => api.post(`/practice/questions/${id}/answer`, data),
+  getQuestions: (courseId) => api.get(`/api/practice/course/${courseId}`),
+  getQuestion: (id) => api.get(`/api/practice/questions/${id}`),
+  submitAnswer: (id, data) => api.post(`/api/practice/questions/${id}/answer`, data),
 }
 
 export const learningPathsApi = {
