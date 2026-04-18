@@ -11,7 +11,6 @@ function MyCourses() {
   const { toast, showToast, closeToast } = useToast()
   const [courses, setCourses] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [currentUser, setCurrentUser] = useState(null)
   const [canCreateCourse, setCanCreateCourse] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(null)
@@ -163,6 +162,7 @@ function MyCourses() {
               </div>
             </Card>
           ))}
+        </div>
       )}
       
       <ConfirmDialog
