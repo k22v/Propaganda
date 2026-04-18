@@ -6,7 +6,7 @@ import random
 from app.database import get_db
 from app.models import PracticeQuestion, Course
 from app.schemas import PracticeQuestionCreate, PracticeQuestionUpdate, PracticeQuestionResponse
-from app.auth import get_current_active_user
+from app.auth import get_current_user_optional
 from app.models import User
 
 router = APIRouter(prefix="/practice", tags=["practice"])
@@ -16,7 +16,7 @@ router = APIRouter(prefix="/practice", tags=["practice"])
 async def list_practice_questions(
     course_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     result = await db.execute(
         select(PracticeQuestion)
@@ -31,7 +31,7 @@ async def list_practice_questions(
 async def get_random_question(
     course_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     result = await db.execute(
         select(PracticeQuestion)
@@ -51,7 +51,7 @@ async def get_random_question(
 async def create_practice_question(
     question_data: PracticeQuestionCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     course_result = await db.execute(
         select(Course).where(Course.id == question_data.course_id)
@@ -76,7 +76,7 @@ async def update_practice_question(
     question_id: int,
     question_data: PracticeQuestionUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     result = await db.execute(
         select(PracticeQuestion).where(PracticeQuestion.id == question_id)
@@ -106,7 +106,7 @@ async def update_practice_question(
 async def delete_practice_question(
     question_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     result = await db.execute(
         select(PracticeQuestion).where(PracticeQuestion.id == question_id)
