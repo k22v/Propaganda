@@ -1,3 +1,3 @@
 @echo off
-cd /d C:\coding\lms-platform\frontend
-npm run dev
+cd /d C:\propaganda\frontend
+call node node_modules\vite\bin\vite.js
