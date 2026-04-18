@@ -65,7 +65,7 @@ export function AdminToolbar({ filters, onChange, onReset, onExport }) {
   )
 }
 
-export function UsersTable({ users, isLoading, pagination, onPageChange, onDelete }) {
+export function UsersTable({ users, isLoading, pagination, onPageChange, onDelete, onRoleChange, onSpecializationChange, onBlock }) {
   if (isLoading) {
     return (
       <Card className="users-table-card" padding="none">
@@ -119,14 +119,28 @@ export function UsersTable({ users, isLoading, pagination, onPageChange, onDelet
                     </div>
                   </td>
                   <td>
-                    <Badge variant={getRoleVariant(user.role)}>
-                      {getRoleLabel(user.role)}
-                    </Badge>
+                    <select
+                      value={user.role || 'student'}
+                      onChange={(e) => onRoleChange?.(user.id, e.target.value)}
+                      style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--color-border)' }}
+                    >
+                      <option value="student">Студент</option>
+                      <option value="teacher">Преподаватель</option>
+                      <option value="admin">Администратор</option>
+                    </select>
                   </td>
                   <td>
-                    <span className="user-specialty">
-                      {getSpecialtyLabel(user.specialization) || '-'}
-                    </span>
+                    <select
+                      value={user.specialization || ''}
+                      onChange={(e) => onSpecializationChange?.(user.id, e.target.value || null)}
+                      style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid var(--color-border)' }}
+                    >
+                      <option value="">-</option>
+                      <option value="dentist">Стоматолог</option>
+                      <option value="assistant">Ассистент</option>
+                      <option value="technician">Техник</option>
+                      <option value="clinic_admin">Администратор клиники</option>
+                    </select>
                   </td>
                   <td>
                     <Badge variant={user.is_active ? 'success' : 'danger'}>
@@ -141,7 +155,8 @@ export function UsersTable({ users, isLoading, pagination, onPageChange, onDelet
                   <td>
                     <UserRowActions 
                       user={user} 
-                      onDelete={onDelete ? () => onDelete(user.id) : undefined} 
+                      onDelete={onDelete ? () => onDelete(user.id) : undefined}
+                      onBlock={onBlock ? () => onBlock(user.id) : undefined}
                     />
                   </td>
                 </tr>
@@ -183,7 +198,6 @@ export function UsersTable({ users, isLoading, pagination, onPageChange, onDelet
 export function UserRowActions({ user, onEdit, onBlock, onDelete, onResetPassword }) {
   const items = [
     { label: 'Редактировать', onClick: () => onEdit?.(user) },
-    { label: 'Изменить роль', onClick: () => {} },
     { 
       label: user.is_active ? 'Заблокировать' : 'Разблокировать', 
       onClick: () => onBlock?.(user) 

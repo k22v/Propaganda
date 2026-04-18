@@ -262,7 +262,7 @@ function CourseDetail() {
       )}
       <div className="course-header">
         <h1>{course.title}</h1>
-      {canEdit && (
+      {(canEdit || course?.is_enrolled) && (
         <div className="course-actions">
           <Button onClick={handleTogglePublish}>
             {course.is_published ? <><EyeOff size={16} /> Снять с публикации</> : <><Eye size={16} /> Опубликовать</>}

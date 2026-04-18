@@ -224,6 +224,9 @@ export default function AdminDashboard() {
             pagination={pagination}
             onPageChange={(page) => setPagination(p => ({ ...p, page }))}
             onDelete={(userId) => setDeleteConfirm(userId)}
+            onRoleChange={updateRole}
+            onSpecializationChange={updateSpecialization}
+            onBlock={toggleBlock}
           />
         </>
       )}
