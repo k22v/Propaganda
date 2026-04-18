@@ -16,7 +16,7 @@ from app.schemas import (
     ReorderRequest
 )
 from app.auth import get_current_active_user, get_current_user_optional
-from app.policies import can_edit_course, can_view_course, require_permission, Permission, check_teacher_or_admin
+from app.policies import can_edit_course, can_view_course, can_view_course_content, require_permission, Permission, check_teacher_or_admin
 from app.limiter import limiter
 from app.logging_utils import get_logger
 from app.sanitize import sanitize_html
@@ -202,6 +202,9 @@ async def get_course(
         course = result.scalar_one_or_none()
         if not course:
             raise HTTPException(status_code=404, detail="Course not found")
+
+        if not current_user:
+            raise HTTPException(status_code=401, detail="Authentication required")
 
         if not can_view_course(current_user, course.is_published, course.author_id):
             raise HTTPException(status_code=403, detail="Course not available")
@@ -831,7 +834,7 @@ async def get_content(
     course_id: int,
     content_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_active_user)
 ):
     course_result = await db.execute(
         select(Course).where(Course.id == course_id)
@@ -840,8 +843,9 @@ async def get_content(
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
 
-    is_superuser = current_user and current_user.is_superuser
-    user_spec = (current_user.specialization or '').strip().lower() if current_user else ''
+    is_superuser = current_user.is_superuser
+    is_author = current_user.id == course.author_id
+    user_spec = (current_user.specialization or '').strip().lower()
     course_spec = (course.specialization or '').strip().lower()
     
     if course_spec and user_spec != course_spec:
@@ -855,10 +859,10 @@ async def get_content(
             detail="Для доступа к курсу установите специализацию в профиле"
         )
 
-    if not course.is_published and not is_superuser:
+    if not course.is_published and not is_superuser and not is_author:
         raise HTTPException(status_code=403, detail="Course not available")
 
-    if current_user and not is_superuser:
+    if not is_superuser and not is_author:
         enrollment_result = await db.execute(
             select(Enrollment).where(
                 Enrollment.user_id == current_user.id,

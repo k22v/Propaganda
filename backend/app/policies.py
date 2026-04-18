@@ -219,6 +219,17 @@ def can_view_course(user: Optional[User], course_is_published: bool, course_auth
     return False
 
 
+def can_view_course_content(user: Optional[User], course_is_published: bool, course_author_id: int) -> bool:
+    """Check if user can view course content (requires enrollment or privileged access)."""
+    if user and (user.is_superuser or user.role in ("admin", "teacher")):
+        return True
+    if user and user.id == course_author_id:
+        return True
+    if course_is_published and user:
+        return True
+    return False
+
+
 def check_teacher_or_admin(user: User) -> None:
     """Raise HTTPException if user is not a teacher or admin."""
     if not user.is_superuser and user.role not in ("admin", "teacher"):
