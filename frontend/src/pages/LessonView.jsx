@@ -10,7 +10,7 @@ import { Card, Badge, Button } from '../components/ui/index.jsx'
 import VideoPlayer from '../components/VideoPlayer'
 
 function LessonView() {
-  const { courseId, lessonId, contentId } = useParams()
+  const { courseId, contentId } = useParams()
   const { showToast, toast, closeToast } = useToast()
   const [lesson, setLesson] = useState(null)
   const [quiz, setQuiz] = useState(null)
@@ -32,25 +32,16 @@ function LessonView() {
       .catch(() => setCurrentUser(null))
   }, [])
 
-  const contentOrLessonId = lessonId || contentId
-
   useEffect(() => {
     if (contentId) {
       coursesApi.getContent(courseId, contentId)
         .then(res => setLesson(res.data))
         .catch(console.error)
-    } else if (lessonId) {
-      coursesApi.getLessons(courseId)
-        .then(res => {
-          const found = res.data.find(l => l.id === parseInt(lessonId))
-          if (found) setLesson(found)
-        })
-        .catch(console.error)
     }
-  }, [courseId, lessonId, contentId])
+  }, [courseId, contentId])
 
   useEffect(() => {
-    const idToFetch = lessonId || contentId
+    const idToFetch = contentId
     if (!idToFetch) return
     quizApi.getByLesson(idToFetch)
       .then(res => {
@@ -64,15 +55,15 @@ function LessonView() {
         console.error('Error loading quiz:', err)
         setQuizLoading(false)
       })
-  }, [lessonId, contentId])
+  }, [contentId])
 
   useEffect(() => {
-    if (showComments && contentOrLessonId) {
-      commentsApi.getByLesson(contentOrLessonId)
+    if (showComments && contentId) {
+      commentsApi.getByLesson(contentId)
         .then(res => setComments(res.data))
         .catch(console.error)
     }
-  }, [showComments, contentOrLessonId])
+  }, [showComments, contentId])
 
   const handleAnswerSelect = (questionId, answerId) => {
     setSelectedAnswers(prev => ({ ...prev, [questionId]: answerId }))
@@ -135,7 +126,7 @@ function LessonView() {
       return
     }
     try {
-      await quizApi.create({ ...newQuiz, lesson_id: contentOrLessonId })
+      await quizApi.create({ ...newQuiz, lesson_id: contentId })
       showToast('Тест создан!', 'success')
       setShowCreateQuiz(false)
       window.location.reload()
@@ -148,9 +139,9 @@ function LessonView() {
     e.preventDefault()
     if (!newComment.trim()) return
     try {
-      await commentsApi.create({ content: newComment, lesson_id: contentOrLessonId })
+      await commentsApi.create({ content: newComment, lesson_id: contentId })
       setNewComment('')
-      const res = await commentsApi.getByLesson(contentOrLessonId)
+      const res = await commentsApi.getByLesson(contentId)
       setComments(res.data)
       showToast('Комментарий добавлен', 'success')
     } catch (err) {

@@ -145,12 +145,11 @@ export const instrumentsApi = {
 }
 
 export const practiceApi = {
-  getQuestions: (courseId) => api.get(`/api/practice/course/${courseId}`),
-  getQuestion: (id) => api.get(`/api/practice/questions/${id}`),
-  submitAnswer: (id, data) => api.post(`/api/practice/questions/${id}/answer`, data),
-  create: (data) => api.post('/api/practice/', data),
-  update: (id, data) => api.patch(`/api/practice/${id}`, data),
-  delete: (id) => api.delete(`/api/practice/${id}`),
+  getQuestions: (courseId) => api.get(`/practice/course/${courseId}`),
+  getQuestion: (id) => api.get(`/practice/${id}`),
+  create: (data) => api.post('/practice/', data),
+  update: (id, data) => api.patch(`/practice/${id}`, data),
+  delete: (id) => api.delete(`/practice/${id}`),
 }
 
 export const learningPathsApi = {

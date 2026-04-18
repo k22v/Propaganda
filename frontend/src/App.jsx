@@ -108,8 +108,6 @@ return (
               <Route path="/my-courses" element={isAuthenticated ? <MyCourses /> : <Navigate to="/login" />} />
               <Route path="/courses/:courseId" element={<CourseDetail />} />
               <Route path="/courses/:courseId/content/:contentId" element={<LessonView />} />
-              <Route path="/courses/:courseId/lessons/:lessonId" element={<LessonView />} />
-              <Route path="/courses/:courseId/lessons/:lessonId/quiz" element={isAuthenticated ? <CreateQuiz /> : <Navigate to="/login" />} />
               <Route path="/courses/:courseId/quiz/:quizId" element={isAuthenticated ? <QuizView /> : <Navigate to="/login" />} />
               <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
               <Route path="/create" element={isSuperuser ? <CreateCourse /> : <NotFound />} />
