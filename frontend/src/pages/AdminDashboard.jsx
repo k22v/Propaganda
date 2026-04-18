@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Download, Users, BookOpen, CheckCircle2, ClipboardList } from 'lucide-react'
 import { adminApi } from '../api'
+import { ToastContainer, useToast } from '../components/Toast'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { Card, Badge, Button, Tabs } from '../components/ui/index.jsx'
 import { AdminToolbar, UsersTable, UserRowActions, AdminStatsRow } from '../components/AdminComponents'
 import { StatsCharts } from '../components/StatsCharts'
@@ -15,6 +17,7 @@ const TABS = [
 ]
 
 export default function AdminDashboard() {
+  const { toast, showToast, closeToast } = useToast()
   const [stats, setStats] = useState(null)
   const [users, setUsers] = useState([])
   const [quizResults, setQuizResults] = useState([])
@@ -24,6 +27,7 @@ export default function AdminDashboard() {
   const [selectedResult, setSelectedResult] = useState(null)
   const [filters, setFilters] = useState({ search: '', role: '', specialization: '', status: '' })
   const [pagination, setPagination] = useState({ page: 1, total: 0 })
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
   const initialized = useRef(false)
 
   const loadStats = async () => {
@@ -133,11 +137,12 @@ export default function AdminDashboard() {
 
   const updateRole = async (userId, role) => {
     try {
-      await adminApi.updateUserRole(userId, role)
+      await adminApi.updateUserRole(userId, { role })
       loadUsers()
+      showToast('Роль обновлена', 'success')
     } catch (err) {
       console.error('Role update error:', err)
-      alert('Ошибка при обновлении роли')
+      showToast('Ошибка при обновлении роли', 'error')
     }
   }
 
@@ -145,9 +150,10 @@ export default function AdminDashboard() {
     try {
       await adminApi.updateUserSpecialization(userId, specialization || null)
       loadUsers()
+      showToast('Специализация обновлена', 'success')
     } catch (err) {
       console.error('Specialization update error:', err)
-      alert('Ошибка при обновлении специализации')
+      showToast('Ошибка при обновлении специализации', 'error')
     }
   }
 
@@ -157,17 +163,21 @@ export default function AdminDashboard() {
       loadUsers()
     } catch (err) {
       console.error('Block toggle error:', err)
+      showToast('Ошибка при блокировке', 'error')
     }
   }
 
-  const deleteUser = async (userId) => {
-    if (!window.confirm('Вы уверены, что хотите удалить пользователя?')) return
+  const handleDeleteUser = async () => {
+    if (!deleteConfirm) return
     try {
-      await adminApi.deleteUser(userId)
+      await adminApi.deleteUser(deleteConfirm)
       loadUsers()
+      showToast('Пользователь удалён', 'success')
     } catch (err) {
       console.error('Delete error:', err)
+      showToast('Ошибка при удалении', 'error')
     }
+    setDeleteConfirm(null)
   }
 
   if (loading) {
@@ -213,6 +223,7 @@ export default function AdminDashboard() {
             isLoading={loading}
             pagination={pagination}
             onPageChange={(page) => setPagination(p => ({ ...p, page }))}
+            onDelete={(userId) => setDeleteConfirm(userId)}
           />
         </>
       )}
@@ -367,6 +378,18 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+      <ToastContainer toast={toast} onClose={closeToast} />
+      
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        title="Удаление пользователя"
+        message="Вы уверены, что хотите удалить этого пользователя? Это действие нельзя отменить."
+        confirmText="Удалить"
+        cancelText="Отмена"
+        danger={true}
+        onConfirm={handleDeleteUser}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

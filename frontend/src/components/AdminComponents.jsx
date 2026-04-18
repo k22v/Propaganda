@@ -65,7 +65,7 @@ export function AdminToolbar({ filters, onChange, onReset, onExport }) {
   )
 }
 
-export function UsersTable({ users, isLoading, pagination, onPageChange }) {
+export function UsersTable({ users, isLoading, pagination, onPageChange, onDelete }) {
   if (isLoading) {
     return (
       <Card className="users-table-card" padding="none">
@@ -139,7 +139,10 @@ export function UsersTable({ users, isLoading, pagination, onPageChange }) {
                     </span>
                   </td>
                   <td>
-                    <UserRowActions user={user} />
+                    <UserRowActions 
+                      user={user} 
+                      onDelete={onDelete ? () => onDelete(user.id) : undefined} 
+                    />
                   </td>
                 </tr>
               ))}
