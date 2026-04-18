@@ -116,7 +116,7 @@ return (
               <Route path="/admin" element={isAdmin ? <AdminDashboard /> : <NotFound />} />
               <Route path="/glossary" element={<Glossary />} />
               <Route path="/glossary/:id" element={<InstrumentDetail />} />
-              <Route path="/courses/:courseId/practice" element={isSuperuser ? <PracticeQuestions /> : <NotFound />} />
+              <Route path="/courses/:courseId/practice" element={<PracticeQuestions />} />
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

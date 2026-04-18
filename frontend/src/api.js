@@ -2,8 +2,6 @@ import axios from 'axios'
 
 const TOKEN_KEY = 'access_token'
 
-const getToken = () => localStorage.getItem(TOKEN_KEY)
-const setToken = (token) => localStorage.setItem(TOKEN_KEY, token)
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY)
 
 const api = axios.create({
@@ -11,7 +9,7 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  const token = getToken()
+  const token = localStorage.getItem(TOKEN_KEY)
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -22,7 +20,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      clearToken()
+      const isAuthCheck = error.config?.url === '/auth/me'
+      if (!isAuthCheck && !window.location.pathname.startsWith('/login')) {
+        clearToken()
+        window.location.href = '/login'
+      }
     }
     return Promise.reject(error)
   }
@@ -44,7 +46,7 @@ export const authApi = {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then((res) => {
       if (res.data.access_token) {
-        setToken(res.data.access_token)
+        localStorage.setItem(TOKEN_KEY, res.data.access_token)
       }
       return res
     })
@@ -74,17 +76,19 @@ export const coursesApi = {
   createSection: (courseId, data) => api.post(`/courses/${courseId}/sections`, data),
   updateSection: (courseId, sectionId, data) => api.patch(`/courses/${courseId}/sections/${sectionId}`, data),
   deleteSection: (courseId, sectionId) => api.delete(`/courses/${courseId}/sections/${sectionId}`),
-  createChapter: (courseId, sectionId, data) => api.post(`/courses/${courseId}/sections/${sectionId}/chapters`, data),
-  updateChapter: (courseId, sectionId, chapterId, data) => api.patch(`/courses/${courseId}/sections/${sectionId}/chapters/${chapterId}`, data),
-  deleteChapter: (courseId, sectionId, chapterId) => api.delete(`/courses/${courseId}/sections/${sectionId}/chapters/${chapterId}`),
+  createChapter: (courseId, data) => api.post(`/courses/${courseId}/chapters`, data),
+  updateChapter: (courseId, chapterId, data) => api.patch(`/courses/${courseId}/chapters/${chapterId}`, data),
+  deleteChapter: (courseId, chapterId) => api.delete(`/courses/${courseId}/chapters/${chapterId}`),
   createContent: (courseId, data) => api.post(`/courses/${courseId}/contents`, data),
   updateContent: (courseId, contentId, data) => api.patch(`/courses/${courseId}/contents/${contentId}`, data),
   deleteContent: (courseId, contentId) => api.delete(`/courses/${courseId}/contents/${contentId}`),
   reorderContent: (courseId, data) => api.post(`/courses/${courseId}/reorder-content`, data),
+  getContent: (courseId, contentId) => api.get(`/courses/${courseId}/contents/${contentId}`),
 }
 
 export const quizzesApi = {
   getById: (id) => api.get(`/quizzes/${id}`),
+  getOne: (id) => api.get(`/quizzes/${id}`),
   getByLesson: (lessonId) => api.get(`/quizzes/lesson/${lessonId}`),
   submit: (id, data) => api.post(`/quizzes/${id}/submit`, data),
   getResults: (attemptId) => api.get(`/quizzes/results/${attemptId}`),
@@ -125,19 +129,23 @@ export const adminApi = {
   updateUser: (id, data) => api.patch(`/admin/users/${id}`, data),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
   updateRole: (id, data) => api.patch(`/admin/users/${id}/role`, data),
+  updateUserRole: (id, data) => api.patch(`/admin/users/${id}/role`, data),
   toggleBlock: (id) => api.post(`/admin/users/${id}/toggle-block`),
+  toggleUserBlock: (id) => api.post(`/admin/users/${id}/toggle-block`),
+  updateUserSpecialization: (id, specialization) => api.patch(`/admin/users/${id}`, { specialization }),
 }
 
 export const instrumentsApi = {
   getAll: (params) => api.get('/instruments/', { params }),
   getById: (id) => api.get(`/instruments/${id}`),
+  getOne: (id) => api.get(`/instruments/${id}`),
   create: (data) => api.post('/instruments/', data),
   update: (id, data) => api.patch(`/instruments/${id}`, data),
   delete: (id) => api.delete(`/instruments/${id}`),
 }
 
 export const practiceApi = {
-  getQuestions: (params) => api.get('/practice/questions', { params }),
+  getQuestions: (courseId) => api.get(`/practice/course/${courseId}`),
   getQuestion: (id) => api.get(`/practice/questions/${id}`),
   submitAnswer: (id, data) => api.post(`/practice/questions/${id}/answer`, data),
 }
