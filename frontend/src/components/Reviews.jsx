@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { reviewsApi } from '../api'
 import { ToastContainer, useToast, withToastHandler } from './Toast'
 import { ConfirmDialog } from './ConfirmDialog'
+import { getAvatarEmoji } from '../constants/avatars'
 
 function Reviews({ courseId, isEnrolled, isSuperuser = false }) {
   const { toast, showToast, closeToast } = useToast()
@@ -14,21 +15,6 @@ function Reviews({ courseId, isEnrolled, isSuperuser = false }) {
   const [deleteReviewId, setDeleteReviewId] = useState(null)
   const [respondReviewId, setRespondReviewId] = useState(null)
   const [responseText, setResponseText] = useState('')
-
-  const ANIMALS = [
-    { id: 1, emoji: '🦊' }, { id: 2, emoji: '🐼' }, { id: 3, emoji: '🦁' },
-    { id: 4, emoji: '🐯' }, { id: 5, emoji: '🐨' }, { id: 6, emoji: '🐸' },
-    { id: 7, emoji: '🐵' }, { id: 8, emoji: '🦄' }, { id: 9, emoji: '🐲' },
-    { id: 10, emoji: '🐙' }, { id: 11, emoji: '🦋' }, { id: 12, emoji: '🐢' },
-    { id: 13, emoji: '🦩' }, { id: 14, emoji: '🐳' }, { id: 15, emoji: '🦉' },
-    { id: 16, emoji: '🦅' },
-  ]
-
-  const getAvatarEmoji = (avatarId) => {
-    if (!avatarId) return '👤'
-    const animal = ANIMALS.find(a => a.id === avatarId)
-    return animal?.emoji || '👤'
-  }
 
   useEffect(() => {
     loadReviews()

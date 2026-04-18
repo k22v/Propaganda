@@ -2,6 +2,19 @@ import { BookOpen, CheckCircle, Award, FileText, Edit, Lock } from 'lucide-react
 import { Card, Avatar, Button, Badge } from './ui/index.jsx'
 import './ProfileSidebar.css'
 
+const ANIMALS = [
+  { id: 1, emoji: '🦊' }, { id: 2, emoji: '🐼' }, { id: 3, emoji: '🦁' },
+  { id: 4, emoji: '🐯' }, { id: 5, emoji: '🐨' }, { id: 6, emoji: '🐸' },
+  { id: 7, emoji: '🐵' }, { id: 8, emoji: '🦄' }, { id: 9, emoji: '🐲' },
+  { id: 10, emoji: '🐙' }, { id: 11, emoji: '🦋' }, { id: 12, emoji: '🐢' },
+  { id: 13, emoji: '🦩' }, { id: 14, emoji: '🐳' }, { id: 15, emoji: '🦉' }, { id: 16, emoji: '🦅' },
+]
+
+function getAvatarEmoji(avatarId) {
+  if (!avatarId) return null
+  return ANIMALS.find(a => a.id === avatarId)?.emoji || null
+}
+
 export function ProfileSidebar({ user, onEdit, onPassword }) {
   const getRoleBadge = (role) => {
     const badges = {
@@ -17,7 +30,11 @@ export function ProfileSidebar({ user, onEdit, onPassword }) {
   return (
     <Card className="profile-sidebar" padding="lg">
       <div className="profile-avatar-section">
-        <Avatar name={user?.full_name || user?.username} size="xl" />
+        {user?.avatar_id ? (
+          <div style={{ fontSize: '3rem' }}>{getAvatarEmoji(user.avatar_id)}</div>
+        ) : (
+          <Avatar name={user?.full_name || user?.username} size="xl" />
+        )}
         <h2 className="profile-username">{user?.full_name || user?.username}</h2>
         <span className="profile-username-small">@{user?.username}</span>
         <Badge variant={role.variant} size="md">

@@ -98,6 +98,8 @@ export const quizApi = quizzesApi
 
 export const reviewsApi = {
   getByCourse: (courseId) => api.get(`/reviews/course/${courseId}`),
+  getStats: (courseId) => api.get(`/reviews/course/${courseId}/stats`),
+  getMy: () => api.get('/reviews/my'),
   create: (data) => api.post('/reviews/', data),
   update: (id, data) => api.patch(`/reviews/${id}`, data),
   delete: (id) => api.delete(`/reviews/${id}`),

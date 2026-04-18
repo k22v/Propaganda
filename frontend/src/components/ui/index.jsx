@@ -17,9 +17,9 @@ export function Badge({ children, variant = 'default', size = 'md' }) {
   )
 }
 
-export function Card({ children, className = '', padding = 'md' }) {
+export function Card({ children, className = '', padding = 'md', ...props }) {
   return (
-    <div className={`card card-padding-${padding} ${className}`}>
+    <div className={`card card-padding-${padding} ${className}`} {...props}>
       {children}
     </div>
   )
