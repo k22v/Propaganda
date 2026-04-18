@@ -162,7 +162,7 @@ function MyCourses() {
                 )}
               </div>
             </Card>
-))}
+          ))}
       )}
       
       <ConfirmDialog
