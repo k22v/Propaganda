@@ -148,6 +148,9 @@ export const practiceApi = {
   getQuestions: (courseId) => api.get(`/api/practice/course/${courseId}`),
   getQuestion: (id) => api.get(`/api/practice/questions/${id}`),
   submitAnswer: (id, data) => api.post(`/api/practice/questions/${id}/answer`, data),
+  create: (data) => api.post('/api/practice/', data),
+  update: (id, data) => api.patch(`/api/practice/${id}`, data),
+  delete: (id) => api.delete(`/api/practice/${id}`),
 }
 
 export const learningPathsApi = {
