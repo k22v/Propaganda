@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { Plus, Trash2, X, Lightbulb, HelpCircle } from 'lucide-react'
-import { practiceApi } from '../api'
+import { practiceApi, authApi } from '../api'
 import { ToastContainer, useToast } from '../components/Toast'
 import { Card, Badge, Button } from '../components/ui/index.jsx'
 
@@ -10,6 +10,8 @@ function PracticeQuestions() {
   const { showToast, toast, closeToast } = useToast()
   const [questions, setQuestions] = useState([])
   const [loading, setLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState(null)
+  const [course, setCourse] = useState(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [newQuestion, setNewQuestion] = useState({
     question_text: '',
@@ -19,7 +21,22 @@ function PracticeQuestions() {
     explanation: ''
   })
 
-  useEffect(() => { loadQuestions() }, [courseId])
+  useEffect(() => {
+    authApi.getMe().then(r => setCurrentUser(r.data)).catch(() => {})
+  }, [])
+
+  useEffect(() => { 
+    loadQuestions() 
+    if (courseId) {
+      import('../api').then(({ coursesApi }) => 
+        coursesApi.getById(courseId).then(r => setCourse(r.data)).catch(() => {})
+      )
+    }
+  }, [courseId])
+
+  const canManage = currentUser?.is_superuser || 
+    (currentUser?.role === 'admin') || 
+    (course && currentUser?.id === course.author_id)
 
   const loadQuestions = async () => {
     try {
@@ -72,9 +89,11 @@ function PracticeQuestions() {
           </h1>
           <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>Вопросы для практики учеников</p>
         </div>
-        <Button onClick={() => setShowAddModal(true)}>
-          <Plus size={16} /> Добавить вопрос
-        </Button>
+        {canManage && (
+          <Button onClick={() => setShowAddModal(true)}>
+            <Plus size={16} /> Добавить вопрос
+          </Button>
+        )}
       </div>
 
       {loading ? (
@@ -113,9 +132,11 @@ function PracticeQuestions() {
                     </div>
                   )}
                 </div>
-                <Button variant="danger" size="sm" onClick={() => handleDelete(q.id)}>
+                {canManage && (
+                  <Button variant="danger" size="sm" onClick={() => handleDelete(q.id)}>
                   <Trash2 size={14} />
                 </Button>
+                )}
               </div>
             </Card>
           ))}

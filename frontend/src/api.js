@@ -134,7 +134,7 @@ export const adminApi = {
   updateUserRole: (id, data) => api.patch(`/admin/users/${id}/role`, data),
   toggleBlock: (id) => api.post(`/admin/users/${id}/toggle-block`),
   toggleUserBlock: (id) => api.post(`/admin/users/${id}/toggle-block`),
-  updateUserSpecialization: (id, specialization) => api.patch(`/admin/users/${id}`, { specialization }),
+  updateUserSpecialization: (id, specialization) => api.patch(`/admin/users/${id}/specialization`, { specialization }),
 }
 
 export const instrumentsApi = {
