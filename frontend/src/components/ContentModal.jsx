@@ -147,6 +147,14 @@ function ContentModal({ isOpen, onClose, chapterId, onSave }) {
     if (isOpen) {
       setStep('select-type')
       setContentType(null)
+      setTitle('')
+      setContent('')
+      setVideoUrl('')
+      setFileUrl('')
+      setTemplateName('')
+      setShowConfirmClose(false)
+      setIsSaving(false)
+      setShowSaveTemplate(false)
     }
   }, [isOpen])
 

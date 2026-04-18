@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { BookOpen, Plus, Trash2, Edit, ArrowRight } from 'lucide-react'
 import { coursesApi, authApi } from '../api'
 import { ToastContainer, useToast } from '../components/Toast'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { Card, Badge, Button } from '../components/ui/index.jsx'
 import { CourseGrid } from '../components/CourseComponents'
 
@@ -13,6 +14,7 @@ function MyCourses() {
   const [error, setError] = useState(null)
   const [currentUser, setCurrentUser] = useState(null)
   const [canCreateCourse, setCanCreateCourse] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState(null)
 
   useEffect(() => {
     authApi.getMe()
@@ -50,13 +52,23 @@ function MyCourses() {
   }, [showToast])
 
   const handleDelete = async (id) => {
-    if (!confirm('Удалить курс?')) return
     try {
       await coursesApi.delete(id)
       setCourses(courses.filter(c => c.id !== id))
       showToast('Курс удалён', 'success')
     } catch (err) {
       showToast(err.response?.data?.detail || 'Ошибка удаления курса', 'error')
+    }
+  }
+
+  const handleDeleteClick = (id) => {
+    setDeleteConfirm(id)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (deleteConfirm) {
+      await handleDelete(deleteConfirm)
+      setDeleteConfirm(null)
     }
   }
 
@@ -143,16 +155,26 @@ function MyCourses() {
                         <Edit size={14} /> Редакт.
                       </Button>
                     </Link>
-                    <Button variant="danger" size="sm" onClick={() => handleDelete(course.id)}>
+                    <Button variant="danger" size="sm" onClick={() => handleDeleteClick(course.id)}>
                       <Trash2 size={14} />
                     </Button>
                   </>
                 )}
               </div>
             </Card>
-          ))}
-        </div>
+))}
       )}
+      
+      <ConfirmDialog
+        isOpen={!!deleteConfirm}
+        title="Удаление курса"
+        message="Вы уверены, что хотите удалить этот курс? Это действие нельзя отменить."
+        confirmText="Удалить"
+        cancelText="Отмена"
+        danger={true}
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setDeleteConfirm(null)}
+      />
     </div>
   )
 }

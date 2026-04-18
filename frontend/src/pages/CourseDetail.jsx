@@ -77,7 +77,7 @@ function CourseDetail() {
 
   const loadData = async () => {
     try {
-      const courseRes = await coursesApi.getOne(id)
+      const courseRes = await coursesApi.getById(id)
       setCourse(courseRes.data)
       try {
         const userRes = await authApi.getMe()

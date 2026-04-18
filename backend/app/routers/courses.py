@@ -15,7 +15,7 @@ from app.schemas import (
     LessonContentCreate, LessonContentUpdate, LessonContentResponse,
     ReorderRequest
 )
-from app.auth import get_current_active_user
+from app.auth import get_current_active_user, get_current_user_optional
 from app.policies import can_edit_course, can_view_course, require_permission, Permission, check_teacher_or_admin
 from app.limiter import limiter
 from app.logging_utils import get_logger
@@ -193,7 +193,7 @@ async def create_course(
 async def get_course(
     course_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     try:
         result = await db.execute(
@@ -207,28 +207,27 @@ async def get_course(
             raise HTTPException(status_code=403, detail="Course not available")
 
         privileged_viewer = (
-            current_user.is_superuser or
-            current_user.role in ("admin", "teacher") or
-            current_user.id == course.author_id
+            current_user and (current_user.is_superuser or current_user.role in ("admin", "teacher") or current_user.id == course.author_id)
         )
 
-        user_spec = current_user.specialization
+        user_spec = current_user.specialization if current_user else None
         course_spec = course.specialization
 
-        if not privileged_viewer:
-            if course_spec and user_spec != course_spec:
+        if not privileged_viewer and course_spec:
+            if user_spec != course_spec:
                 raise HTTPException(
                     status_code=403,
                     detail=f"Этот курс для специализации: {course_spec}. Ваша: {user_spec}"
                 )
-            if course_spec and not user_spec:
+            if not user_spec:
                 raise HTTPException(
                     status_code=403,
                     detail="Установите специализацию в профиле"
                 )
 
+        privileged = current_user and (current_user.is_superuser or current_user.role in ("admin", "teacher") or current_user.id == course.author_id)
         now = datetime.utcnow()
-        if course.start_date and course.end_date and not privileged_viewer:
+        if course.start_date and course.end_date and not privileged:
             if now < course.start_date:
                 raise HTTPException(
                     status_code=403,
@@ -832,7 +831,7 @@ async def get_content(
     course_id: int,
     content_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     course_result = await db.execute(
         select(Course).where(Course.id == course_id)
@@ -841,24 +840,25 @@ async def get_content(
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
 
-    if not current_user.is_superuser:
-        user_spec = (current_user.specialization or '').strip().lower()
-        course_spec = (course.specialization or '').strip().lower()
-        if course_spec and user_spec != course_spec:
-            raise HTTPException(
-                status_code=403,
-                detail=f"Этот курс предназначен для специализации: {course_spec}. Ваша специализация: {user_spec}"
-            )
-        if course_spec and not user_spec:
-            raise HTTPException(
-                status_code=403,
-                detail="Для доступа к курсу установите специализацию в профиле"
-            )
+    is_superuser = current_user and current_user.is_superuser
+    user_spec = (current_user.specialization or '').strip().lower() if current_user else ''
+    course_spec = (course.specialization or '').strip().lower()
+    
+    if course_spec and user_spec != course_spec:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Этот курс предназначен для специализации: {course_spec}. Ваша специализация: {user_spec}"
+        )
+    if course_spec and not user_spec:
+        raise HTTPException(
+            status_code=403,
+            detail="Для доступа к курсу установите специализацию в профиле"
+        )
 
-    if not course.is_published and not current_user.is_superuser:
+    if not course.is_published and not is_superuser:
         raise HTTPException(status_code=403, detail="Course not available")
 
-    if not current_user.is_superuser:
+    if current_user and not is_superuser:
         enrollment_result = await db.execute(
             select(Enrollment).where(
                 Enrollment.user_id == current_user.id,

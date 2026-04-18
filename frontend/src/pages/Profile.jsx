@@ -77,8 +77,6 @@ function Profile() {
       }
       if (selectedAvatar !== user.avatar_id) {
         await authApi.updateAvatar(selectedAvatar)
-        window.location.reload()
-        return
       }
       showToast('Профиль сохранён', 'success')
       setEditing(false)
