@@ -14,18 +14,21 @@ router = APIRouter(prefix="/practice", tags=["practice"])
 
 
 async def check_practice_access(course_id: int, current_user: Optional[User], db: AsyncSession):
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Authentication required")
+
     course_result = await db.execute(select(Course).where(Course.id == course_id))
     course = course_result.scalar_one_or_none()
-    
+
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
-    
-    if current_user and (current_user.is_superuser or current_user.role == 'admin'):
+
+    if current_user.is_superuser or current_user.role == 'admin':
         return course
-    
+
     if course.author_id == current_user.id:
         return course
-    
+
     enrollment_result = await db.execute(
         select(Enrollment).where(
             Enrollment.user_id == current_user.id,
@@ -34,7 +37,7 @@ async def check_practice_access(course_id: int, current_user: Optional[User], db
     )
     if enrollment_result.scalar_one_or_none():
         return course
-    
+
     raise HTTPException(status_code=403, detail="No access to this course practice")
 
 
