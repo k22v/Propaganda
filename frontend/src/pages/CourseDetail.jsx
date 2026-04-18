@@ -97,6 +97,8 @@ function CourseDetail() {
   const isSuperuser = currentUser && (currentUser.is_superuser || currentUser.role === 'admin')
   const isAdmin = currentUser && (currentUser.role === 'admin' || currentUser.is_superuser)
   const canEdit = isAuthor || isAdmin
+  const canPublish = canEdit
+  const canAccessPractice = canEdit || !!course?.is_enrolled
 
   const wrappedApi = withToastHandler({
     addSection: async () => {
@@ -262,14 +264,14 @@ function CourseDetail() {
       )}
       <div className="course-header">
         <h1>{course.title}</h1>
-        {canEdit && (
+        {canPublish && (
           <div className="course-actions">
             <Button onClick={handleTogglePublish}>
               {course.is_published ? <><EyeOff size={16} /> Снять с публикации</> : <><Eye size={16} /> Опубликовать</>}
             </Button>
           </div>
         )}
-        {(course?.is_enrolled || canEdit) && (
+        {canAccessPractice && (
           <div className="course-actions" style={{ marginTop: '0.5rem' }}>
             <Button variant="secondary" onClick={() => navigate(`/courses/${id}/practice`)}>
               <ClipboardList size={16} /> Задачи

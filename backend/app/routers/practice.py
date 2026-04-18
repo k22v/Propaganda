@@ -4,20 +4,48 @@ from sqlalchemy import select, func
 from typing import List, Optional
 import random
 from app.database import get_db
-from app.models import PracticeQuestion, Course
+from app.models import PracticeQuestion, Course, Enrollment
 from app.schemas import PracticeQuestionCreate, PracticeQuestionUpdate, PracticeQuestionResponse
-from app.auth import get_current_user_optional
+from app.auth import get_current_active_user, get_current_user_optional
 from app.models import User
+from app.policies import can_edit_course
 
 router = APIRouter(prefix="/practice", tags=["practice"])
+
+
+async def check_practice_access(course_id: int, current_user: Optional[User], db: AsyncSession):
+    course_result = await db.execute(select(Course).where(Course.id == course_id))
+    course = course_result.scalar_one_or_none()
+    
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    
+    if current_user and (current_user.is_superuser or current_user.role == 'admin'):
+        return course
+    
+    if course.author_id == current_user.id:
+        return course
+    
+    enrollment_result = await db.execute(
+        select(Enrollment).where(
+            Enrollment.user_id == current_user.id,
+            Enrollment.course_id == course_id
+        )
+    )
+    if enrollment_result.scalar_one_or_none():
+        return course
+    
+    raise HTTPException(status_code=403, detail="No access to this course practice")
 
 
 @router.get("/course/{course_id}", response_model=List[PracticeQuestionResponse])
 async def list_practice_questions(
     course_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
+    await check_practice_access(course_id, current_user, db)
+    
     result = await db.execute(
         select(PracticeQuestion)
         .where(PracticeQuestion.course_id == course_id)
@@ -31,8 +59,10 @@ async def list_practice_questions(
 async def get_random_question(
     course_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: Optional[User] = Depends(get_current_user_optional)
 ):
+    await check_practice_access(course_id, current_user, db)
+    
     result = await db.execute(
         select(PracticeQuestion)
         .where(PracticeQuestion.course_id == course_id)
@@ -51,7 +81,7 @@ async def get_random_question(
 async def create_practice_question(
     question_data: PracticeQuestionCreate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_active_user)
 ):
     course_result = await db.execute(
         select(Course).where(Course.id == question_data.course_id)
@@ -61,7 +91,7 @@ async def create_practice_question(
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     
-    if not current_user.is_superuser and course.author_id != current_user.id:
+    if not can_edit_course(current_user, course.author_id):
         raise HTTPException(status_code=403, detail="Only course author can add practice questions")
     
     question = PracticeQuestion(**question_data.model_dump())
@@ -76,7 +106,7 @@ async def update_practice_question(
     question_id: int,
     question_data: PracticeQuestionUpdate,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_active_user)
 ):
     result = await db.execute(
         select(PracticeQuestion).where(PracticeQuestion.id == question_id)
@@ -91,7 +121,7 @@ async def update_practice_question(
     )
     course = course_result.scalar_one_or_none()
     
-    if not current_user.is_superuser and course.author_id != current_user.id:
+    if not can_edit_course(current_user, course.author_id):
         raise HTTPException(status_code=403, detail="Only course author can edit questions")
     
     for key, value in question_data.model_dump(exclude_unset=True).items():
@@ -106,7 +136,7 @@ async def update_practice_question(
 async def delete_practice_question(
     question_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user_optional)
+    current_user: User = Depends(get_current_active_user)
 ):
     result = await db.execute(
         select(PracticeQuestion).where(PracticeQuestion.id == question_id)
@@ -121,7 +151,7 @@ async def delete_practice_question(
     )
     course = course_result.scalar_one_or_none()
     
-    if not current_user.is_superuser and course.author_id != current_user.id:
+    if not can_edit_course(current_user, course.author_id):
         raise HTTPException(status_code=403, detail="Only course author can delete questions")
     
     await db.delete(question)
