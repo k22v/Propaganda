@@ -42,28 +42,21 @@ async def list_courses(
     specialization: str = None,
     search: str = None,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user)
+    current_user: User = Depends(get_current_user_optional)
 ):
     query = select(Course).where(Course.is_published == True)
-    
+
     if search:
         query = query.where(Course.title.ilike(f"%{search}%"))
-    
-    if current_user.is_superuser:
-        pass
+
+    if not current_user:
+        query = query.where(Course.specialization == None)
+    elif current_user.is_superuser:
+        if specialization:
+            query = query.where(or_(Course.specialization == specialization, Course.specialization == None))
     elif specialization:
         if specialization != (current_user.specialization or ''):
             specialization = current_user.specialization
-    else:
-        specialization = current_user.specialization
-    
-    # For superuser: allow filtering by specialization if explicitly selected
-    # For regular users: filter by their own specialization
-    if current_user.is_superuser:
-        if specialization:
-            query = query.where(or_(Course.specialization == specialization, Course.specialization == None))
-        # else: superuser sees all courses (no filter)
-    elif specialization:
         query = query.where(Course.specialization == current_user.specialization)
     else:
         user_spec = current_user.specialization
