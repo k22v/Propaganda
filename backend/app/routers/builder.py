@@ -9,7 +9,7 @@ from app.schemas_builder import (
     CourseSectionCreate, CourseSectionUpdate, CourseSectionResponse,
     CoursePageCreate, CoursePageUpdate, CoursePageResponse,
     PageBlockCreate, PageBlockUpdate, PageBlockResponse,
-    BuilderTreeResponse, PageBuilderResponse,
+    BuilderTreeResponse, PageBuilderResponse, CourseSectionWithPages,
     TreeReorderRequest, BlocksReorderRequest, BlockBulkAction,
 )
 from app.auth import get_current_active_user
@@ -67,10 +67,25 @@ async def get_builder_tree(
     )
     pages = pages_result.scalars().all()
 
-    return BuilderTreeResponse(
-        sections=[CourseSectionResponse.model_validate(s) for s in sections],
-        pages=[CoursePageResponse.model_validate(p) for p in pages]
-    )
+    pages_by_section = {}
+    for page in pages:
+        sec_id = page.section_id
+        if sec_id not in pages_by_section:
+            pages_by_section[sec_id] = []
+        pages_by_section[sec_id].append(CoursePageResponse.model_validate(page))
+
+    result = []
+    for section in sections:
+        result.append(CourseSectionWithPages(
+            id=section.id,
+            course_id=section.course_id,
+            title=section.title,
+            description=section.description,
+            position=section.position,
+            pages=pages_by_section.get(section.id, [])
+        ))
+
+    return BuilderTreeResponse(sections=result)
 
 
 @router.post("/courses/{course_id}/sections", response_model=CourseSectionResponse)

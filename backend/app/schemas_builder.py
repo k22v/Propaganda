@@ -161,9 +161,17 @@ class PageRevisionResponse(BaseModel):
     created_at: datetime
 
 
+class CourseSectionWithPages(BaseModel):
+    id: int
+    course_id: int
+    title: str
+    description: Optional[str]
+    position: int
+    pages: List["CoursePageResponse"] = []
+
+
 class BuilderTreeResponse(BaseModel):
-    sections: List[CourseSectionResponse]
-    pages: List[CoursePageResponse]
+    sections: List[CourseSectionWithPages]
 
 
 class PageBuilderResponse(BaseModel):

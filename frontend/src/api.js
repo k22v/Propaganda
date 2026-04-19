@@ -168,5 +168,24 @@ export const certificatesApi = {
   issue: (courseId, userId) => api.post('/certificates/issue', { course_id: courseId, user_id: userId }),
 }
 
+export const builderApi = {
+  getTree: (courseId) => api.get(`/builder/courses/${courseId}/tree`),
+  createSection: (courseId, data) => api.post(`/builder/courses/${courseId}/sections`, data),
+  updateSection: (courseId, sectionId, data) => api.patch(`/builder/courses/${courseId}/sections/${sectionId}`, data),
+  deleteSection: (courseId, sectionId) => api.delete(`/builder/courses/${courseId}/sections/${sectionId}`),
+  reorderSections: (courseId, data) => api.post(`/builder/courses/${courseId}/sections/reorder`, data),
+  createPage: (sectionId, data) => api.post(`/builder/sections/${sectionId}/pages`, data),
+  updatePage: (pageId, data) => api.patch(`/builder/pages/${pageId}`, data),
+  deletePage: (pageId) => api.delete(`/builder/pages/${pageId}`),
+  reorderPages: (sectionId, data) => api.post(`/builder/sections/${sectionId}/pages/reorder`, data),
+  getPage: (pageId) => api.get(`/builder/pages/${pageId}`),
+  createBlock: (pageId, data) => api.post(`/builder/pages/${pageId}/blocks`, data),
+  updateBlock: (blockId, data) => api.patch(`/builder/blocks/${blockId}`, data),
+  deleteBlock: (blockId) => api.delete(`/builder/blocks/${blockId}`),
+  bulkBlocks: (data) => api.post(`/builder/blocks/bulk`, data),
+  getThemes: () => api.get('/builder/themes'),
+  createTheme: (data) => api.post('/builder/themes', data),
+}
+
 export { api }
 export default api
