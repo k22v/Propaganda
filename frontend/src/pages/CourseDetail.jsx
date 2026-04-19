@@ -266,6 +266,9 @@ function CourseDetail() {
         <h1>{course.title}</h1>
         {canPublish && (
           <div className="course-actions">
+            <Button variant="outline" onClick={() => navigate(`/builder/${id}`)}>
+              <Edit size={16} /> Редактор
+            </Button>
             <Button onClick={handleTogglePublish}>
               {course.is_published ? <><EyeOff size={16} /> Снять с публикации</> : <><Eye size={16} /> Опубликовать</>}
             </Button>
