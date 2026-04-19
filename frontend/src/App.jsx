@@ -113,7 +113,6 @@ return (
               <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/login" />} />
               <Route path="/create" element={isSuperuser ? <CreateCourse /> : <NotFound />} />
               <Route path="/builder/:courseId" element={isSuperuser ? <Builder /> : <NotFound />} />
-              <Route path="/builder/:courseId/page/:pageId" element={isSuperuser ? <Builder /> : <NotFound />} />
               <Route path="/admin" element={isAdmin ? <AdminDashboard /> : <NotFound />} />
               <Route path="/glossary" element={<Glossary />} />
               <Route path="/glossary/:id" element={<InstrumentDetail />} />

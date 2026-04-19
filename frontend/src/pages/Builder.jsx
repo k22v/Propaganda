@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Plus, ChevronDown, ChevronRight, Trash2, GripVertical, FileText, Layers, Save, Eye } from 'lucide-react'
+import { Plus, ChevronDown, ChevronRight, FileText, Layers, Eye, Trash2, GripVertical } from 'lucide-react'
 import { builderApi, coursesApi } from '../api'
 import { useToast } from '../components/Toast'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { Card, Badge, Button, Modal } from '../components/ui/index.jsx'
 import './Builder.css'
 
@@ -20,6 +21,7 @@ function Builder() {
   const [editingPage, setEditingPage] = useState(null)
   const [showAddSection, setShowAddSection] = useState(false)
   const [showAddPage, setShowAddPage] = useState(null)
+  const [confirmDelete, setConfirmDelete] = useState({ type: null, id: null, title: '' })
 
   useEffect(() => {
     loadData()
@@ -84,8 +86,9 @@ function Builder() {
     }
   }
 
-  const handleDeleteSection = async (sectionId) => {
-    if (!confirm('Удалить раздел и все его страницы?')) return
+  const handleDeleteSection = async () => {
+    const { id: sectionId } = confirmDelete
+    if (!sectionId) return
     setSaving(true)
     try {
       await builderApi.deleteSection(courseId, sectionId)
@@ -95,6 +98,7 @@ function Builder() {
       showToast('Ошибка удаления', 'error')
     } finally {
       setSaving(false)
+      setConfirmDelete({ type: null, id: null, title: '' })
     }
   }
 
@@ -138,8 +142,9 @@ function Builder() {
     }
   }
 
-  const handleDeletePage = async (pageId) => {
-    if (!confirm('Удалить страницу?')) return
+  const handleDeletePage = async () => {
+    const { id: pageId } = confirmDelete
+    if (!pageId) return
     setSaving(true)
     try {
       await builderApi.deletePage(pageId)
@@ -152,11 +157,12 @@ function Builder() {
       showToast('Ошибка удаления', 'error')
     } finally {
       setSaving(false)
+      setConfirmDelete({ type: null, id: null, title: '' })
     }
   }
 
-  const openPageBuilder = (pageId) => {
-    navigate(`/builder/${courseId}/page/${pageId}`)
+  const openPageMessage = () => {
+    showToast('Редактор страниц - в разработке', 'info')
   }
 
   if (isLoading) {
@@ -182,7 +188,7 @@ function Builder() {
           <Button variant="outline" onClick={() => navigate(`/courses/${courseId}`)}>
             <Eye size={16} /> Предпросмотр
           </Button>
-          <Button onClick={() => navigate(`/builder/${courseId}/page/new`)}>
+          <Button onClick={() => showToast('Редактор страниц - в разработке', 'info')}>
             <Plus size={16} /> Добавить страницу
           </Button>
         </div>
@@ -245,7 +251,7 @@ function Builder() {
                       </button>
                       <button 
                         className="icon-btn danger"
-                        onClick={(e) => { e.stopPropagation(); handleDeleteSection(section.id) }}
+                        onClick={(e) => { e.stopPropagation(); setConfirmDelete({ type: 'section', id: section.id, title: section.title }) }}
                         title="Удалить раздел"
                       >
                         <Trash2 size={14} />
@@ -278,7 +284,7 @@ function Builder() {
                             <span 
                               className="page-title"
                               onDoubleClick={() => setEditingPage(page.id)}
-                              onClick={() => openPageBuilder(page.id)}
+                              onClick={() => openPageMessage()}
                             >
                               {page.title}
                             </span>
@@ -286,14 +292,14 @@ function Builder() {
                           <div className="page-actions">
                             <button 
                               className="icon-btn"
-                              onClick={() => openPageBuilder(page.id)}
+                              onClick={() => openPageMessage()}
                               title="Редактировать"
                             >
                               <FileText size={14} />
                             </button>
                             <button 
                               className="icon-btn danger"
-                              onClick={() => handleDeletePage(page.id)}
+                              onClick={(e) => { e.stopPropagation(); setConfirmDelete({ type: 'page', id: page.id, title: page.title }) }}
                               title="Удалить"
                             >
                               <Trash2 size={14} />
@@ -344,6 +350,18 @@ function Builder() {
           </Button>
         </div>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={!!confirmDelete.type}
+        title={confirmDelete.type === 'section' ? 'Удалить раздел?' : 'Удалить страницу?'}
+        message={confirmDelete.type === 'section' 
+          ? `Раздел "${confirmDelete.title}" и все его страницы будут удалены.`
+          : `Страница "${confirmDelete.title}" будет удалена.`}
+        confirmText="Удалить"
+        danger
+        onConfirm={confirmDelete.type === 'section' ? handleDeleteSection : handleDeletePage}
+        onCancel={() => setConfirmDelete({ type: null, id: null, title: '' })}
+      />
     </div>
   )
 }
