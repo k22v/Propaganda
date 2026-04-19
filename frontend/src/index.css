@@ -509,7 +509,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-links a:hover {
-  color: #4b5563;
+  color: var(--color-primary);
 }
 
 .footer {
@@ -1827,8 +1827,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-primary {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff !important;
   border: none;
-  color: #ffffff;
   box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
   transition: all 0.2s ease;
 }
@@ -1846,6 +1846,7 @@ h1, h2, h3, h4, h5, h6 {
 
 [data-theme="dark"] .btn-primary {
   background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff !important;
 }
 
 .btn-secondary {
