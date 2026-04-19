@@ -51,7 +51,12 @@ function Courses() {
   const loadCourses = useCallback(async (pageNum, spec, search = null) => {
     setLoading(true)
     try {
-      const { data } = await coursesApi.getAll(pageNum * PAGE_SIZE, PAGE_SIZE, spec || null, search)
+      const { data } = await coursesApi.getAll({
+        skip: pageNum * PAGE_SIZE,
+        limit: PAGE_SIZE,
+        specialization: spec || undefined,
+        search: search || undefined,
+      })
       const published = data.filter(c => c.is_published)
       if (pageNum === 0) {
         setCourses(published)
