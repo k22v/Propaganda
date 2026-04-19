@@ -1,34 +1,31 @@
 import { Link } from 'react-router-dom'
 import { useEffect, useState } from 'react'
-import { coursesApi, authApi, notificationsApi } from '../api'
+import { coursesApi, notificationsApi } from '../api'
 import { Dashboard } from '../components/Dashboard'
 
-function Landing() {
-  const [isAuthenticated, setIsAuthenticated] = useState(null)
+function Landing({ isAuthenticated: appIsAuthenticated, currentUser: appUser }) {
   const [user, setUser] = useState(null)
   const [stats, setStats] = useState(null)
   const [enrolledCourses, setEnrolledCourses] = useState([])
   const [recommendedCourses, setRecommendedCourses] = useState([])
   const [notifications, setNotifications] = useState([])
   const [loading, setLoading] = useState(true)
-  
-  useEffect(() => {
-    checkAuth()
-  }, [])
+  const [isAuthenticated, setIsAuthenticated] = useState(null)
 
-  const checkAuth = async () => {
-    try {
-      const { data } = await authApi.getMe()
-      setUser(data)
-      setIsAuthenticated(true)
+  useEffect(() => {
+    setIsAuthenticated(appIsAuthenticated)
+    setUser(appUser)
+  }, [appIsAuthenticated, appUser])
+
+  useEffect(() => {
+    if (isAuthenticated === null) return
+
+    if (isAuthenticated) {
       loadDashboardData()
-    } catch {
-      setIsAuthenticated(false)
+    } else {
       loadPublicCourses()
-    } finally {
-      setLoading(false)
     }
-  }
+  }, [isAuthenticated])
 
   const loadDashboardData = async () => {
     try {
@@ -36,7 +33,7 @@ function Landing() {
         coursesApi.getMyCourses(),
         notificationsApi.getAll()
       ])
-      
+
       const courses = coursesRes.data || []
       const inProgress = courses.map(c => ({
         ...c,

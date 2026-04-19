@@ -103,7 +103,7 @@ return (
             <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
             <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
             <Route path="/" element={<Layout isAuthenticated={isAuthenticated} onLogout={handleLogout} onLogin={handleLogin} />} >
-              <Route index element={<Landing />} />
+              <Route index element={<Landing isAuthenticated={isAuthenticated} currentUser={currentUser} />} />
               <Route path="/courses" element={<Courses />} />
               <Route path="/my-courses" element={isAuthenticated ? <MyCourses /> : <Navigate to="/login" />} />
               <Route path="/courses/:courseId" element={<CourseDetail />} />
