@@ -103,6 +103,7 @@ export const reviewsApi = {
   create: (data) => api.post('/reviews/', data),
   update: (id, data) => api.patch(`/reviews/${id}`, data),
   delete: (id) => api.delete(`/reviews/${id}`),
+  respond: (reviewId, response) => api.post(`/reviews/${reviewId}/respond`, { response }),
 }
 
 export const commentsApi = {
@@ -132,8 +133,8 @@ export const adminApi = {
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
   updateRole: (id, data) => api.patch(`/admin/users/${id}/role`, data),
   updateUserRole: (id, data) => api.patch(`/admin/users/${id}/role`, data),
-  toggleBlock: (id) => api.post(`/admin/users/${id}/toggle-block`),
-  toggleUserBlock: (id) => api.post(`/admin/users/${id}/toggle-block`),
+  toggleBlock: (id) => api.patch(`/admin/users/${id}/block`),
+  toggleUserBlock: (id) => api.patch(`/admin/users/${id}/block`),
   updateUserSpecialization: (id, specialization) => api.patch(`/admin/users/${id}/specialization`, { specialization }),
 }
 

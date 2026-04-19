@@ -873,7 +873,10 @@ async def get_content(
             raise HTTPException(status_code=403, detail="Not enrolled")
 
     content_result = await db.execute(
-        select(LessonContent).where(LessonContent.id == content_id)
+        select(LessonContent).join(Chapter).join(Section).where(
+            LessonContent.id == content_id,
+            Section.course_id == course_id
+        )
     )
     content = content_result.scalar_one_or_none()
     if not content:
