@@ -14,6 +14,8 @@ function Builder() {
   
   const [course, setCourse] = useState(null)
   const [currentUser, setCurrentUser] = useState(null)
+  const [authResolved, setAuthResolved] = useState(false)
+  const [accessDenied, setAccessDenied] = useState(false)
   const [sections, setSections] = useState([])
   const [expandedSections, setExpandedSections] = useState(new Set())
   const [isLoading, setIsLoading] = useState(true)
@@ -25,12 +27,27 @@ function Builder() {
   const [confirmDelete, setConfirmDelete] = useState({ type: null, id: null, title: '' })
 
   useEffect(() => {
-    authApi.getMe().then(({ data }) => setCurrentUser(data)).catch(() => {})
+    authApi.getMe()
+      .then(({ data }) => {
+        setCurrentUser(data)
+        setAuthResolved(true)
+      })
+      .catch(() => {
+        setAuthResolved(true)
+        setAccessDenied(true)
+      })
   }, [])
 
   useEffect(() => {
     if (courseId && currentUser) loadData()
   }, [courseId, currentUser])
+
+  const checkPermission = () => {
+    if (!course || !currentUser) return false
+    const isAuthor = course.author_id === currentUser.id
+    const isAdmin = currentUser.role === 'admin' || currentUser.is_superuser
+    return isAuthor || isAdmin
+  }
 
   const loadData = async () => {
     setIsLoading(true)
@@ -50,14 +67,12 @@ function Builder() {
       }
     } finally {
       setIsLoading(false)
+      const canEdit = checkPermission()
+      if (!canEdit) {
+        setAccessDenied(true)
+        showToast('Доступ запрещён', 'error')
+      }
     }
-  }
-
-  const checkPermission = () => {
-    if (!course) return false
-    const isAuthor = course.author_id === currentUser?.id
-    const isAdmin = currentUser?.role === 'admin' || currentUser?.is_superuser
-    return isAuthor || isAdmin
   }
 
   const toggleSection = (sectionId) => {
@@ -180,6 +195,20 @@ function Builder() {
 
   const openPageMessage = () => {
     showToast('Редактор страниц - в разработке', 'info')
+  }
+
+  if (!authResolved) {
+    return (
+      <div className="builder-loading">
+        <div className="spinner"></div>
+        <p>Проверка доступа...</p>
+      </div>
+    )
+  }
+
+  if (accessDenied) {
+    navigate('/courses')
+    return null
   }
 
   if (isLoading) {
