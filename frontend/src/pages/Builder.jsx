@@ -42,10 +42,10 @@ function Builder() {
     if (courseId && currentUser) loadData()
   }, [courseId, currentUser])
 
-  const checkPermission = () => {
-    if (!course || !currentUser) return false
-    const isAuthor = course.author_id === currentUser.id
-    const isAdmin = currentUser.role === 'admin' || currentUser.is_superuser
+  const checkPermission = (courseData, user) => {
+    if (!courseData || !user) return false
+    const isAuthor = courseData.author_id === user.id
+    const isAdmin = user.role === 'admin' || user.is_superuser
     return isAuthor || isAdmin
   }
 
@@ -56,22 +56,26 @@ function Builder() {
         coursesApi.getById(courseId),
         builderApi.getTree(courseId)
       ])
+
+      const canEdit = checkPermission(courseData, currentUser)
+      if (!canEdit) {
+        setAccessDenied(true)
+        showToast('Доступ запрещён', 'error')
+        setIsLoading(false)
+        return
+      }
+
       setCourse(courseData)
       setSections(tree.sections)
     } catch (err) {
       if (err.response?.status === 403 || err.response?.status === 401) {
+        setAccessDenied(true)
         showToast('Доступ запрещён', 'error')
-        navigate('/courses')
       } else {
         showToast('Ошибка загрузки курса', 'error')
       }
     } finally {
       setIsLoading(false)
-      const canEdit = checkPermission()
-      if (!canEdit) {
-        setAccessDenied(true)
-        showToast('Доступ запрещён', 'error')
-      }
     }
   }
 
@@ -206,8 +210,13 @@ function Builder() {
     )
   }
 
+  useEffect(() => {
+    if (accessDenied) {
+      navigate('/courses')
+    }
+  }, [accessDenied])
+
   if (accessDenied) {
-    navigate('/courses')
     return null
   }
 
