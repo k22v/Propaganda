@@ -4,7 +4,7 @@ from sqlalchemy import select, delete, update
 from sqlalchemy.orm import selectinload
 from typing import List
 from app.database import get_db
-from app.models_builder import CourseSection, CoursePage, PageBlock, CourseTheme, Template, PageRevision
+from app.models_builder import CourseSection, CoursePage, PageBlock, CourseTheme, BlockTemplate, PageRevision
 from app.schemas_builder import (
     CourseSectionCreate, CourseSectionUpdate, CourseSectionResponse,
     CoursePageCreate, CoursePageUpdate, CoursePageResponse,

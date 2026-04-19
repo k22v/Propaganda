@@ -118,7 +118,7 @@ class CourseThemeResponse(BaseModel):
     updated_at: datetime
 
 
-class TemplateCreate(BaseModel):
+class BlockTemplateCreate(BaseModel):
     name: str
     category: BlockTypeLiteral
     block_type: BlockTypeLiteral
@@ -128,13 +128,13 @@ class TemplateCreate(BaseModel):
     is_public: Optional[bool] = False
 
 
-class TemplateUpdate(BaseModel):
+class BlockTemplateUpdate(BaseModel):
     name: Optional[str] = None
     is_public: Optional[bool] = None
     usage_count: Optional[int] = None
 
 
-class TemplateResponse(BaseModel):
+class BlockTemplateResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int

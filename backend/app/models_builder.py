@@ -1,11 +1,9 @@
 from datetime import datetime
 from sqlalchemy import String, Text, DateTime, ForeignKey, Boolean, Integer, JSON, Index
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from typing import Optional, List
 
-
-class Base(DeclarativeBase):
-    pass
+from app.models import Base
 
 
 class CourseSection(Base):
@@ -74,8 +72,8 @@ class CourseTheme(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
-class Template(Base):
-    __tablename__ = "templates"
+class BlockTemplate(Base):
+    __tablename__ = "block_templates"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     author_id: Mapped[Optional[int]] = mapped_column(ForeignKey("users.id"), nullable=True)  # null = system template
