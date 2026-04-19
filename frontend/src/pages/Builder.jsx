@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Plus, ChevronDown, ChevronRight, FileText, Layers, Eye, Trash2, GripVertical } from 'lucide-react'
-import { builderApi, coursesApi } from '../api'
+import { builderApi, coursesApi, authApi } from '../api'
 import { useToast } from '../components/Toast'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { Card, Badge, Button, Modal } from '../components/ui/index.jsx'
@@ -13,6 +13,7 @@ function Builder() {
   const { showToast } = useToast()
   
   const [course, setCourse] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null)
   const [sections, setSections] = useState([])
   const [expandedSections, setExpandedSections] = useState(new Set())
   const [isLoading, setIsLoading] = useState(true)
@@ -24,8 +25,12 @@ function Builder() {
   const [confirmDelete, setConfirmDelete] = useState({ type: null, id: null, title: '' })
 
   useEffect(() => {
-    loadData()
-  }, [courseId])
+    authApi.getMe().then(({ data }) => setCurrentUser(data)).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (courseId && currentUser) loadData()
+  }, [courseId, currentUser])
 
   const loadData = async () => {
     setIsLoading(true)
@@ -37,10 +42,22 @@ function Builder() {
       setCourse(courseData)
       setSections(tree.sections)
     } catch (err) {
-      showToast('Ошибка загрузки курса', 'error')
+      if (err.response?.status === 403 || err.response?.status === 401) {
+        showToast('Доступ запрещён', 'error')
+        navigate('/courses')
+      } else {
+        showToast('Ошибка загрузки курса', 'error')
+      }
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const checkPermission = () => {
+    if (!course) return false
+    const isAuthor = course.author_id === currentUser?.id
+    const isAdmin = currentUser?.role === 'admin' || currentUser?.is_superuser
+    return isAuthor || isAdmin
   }
 
   const toggleSection = (sectionId) => {
