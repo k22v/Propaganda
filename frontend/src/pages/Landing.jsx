@@ -20,11 +20,20 @@ function Landing({ isAuthenticated: appIsAuthenticated, currentUser: appUser }) 
   useEffect(() => {
     if (isAuthenticated === null) return
 
-    if (isAuthenticated) {
-      loadDashboardData()
-    } else {
-      loadPublicCourses()
+    const load = async () => {
+      setLoading(true)
+      try {
+        if (isAuthenticated) {
+          await loadDashboardData()
+        } else {
+          await loadPublicCourses()
+        }
+      } finally {
+        setLoading(false)
+      }
     }
+
+    load()
   }, [isAuthenticated])
 
   const loadDashboardData = async () => {
