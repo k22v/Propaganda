@@ -56,6 +56,8 @@ app.include_router(reviews_router, prefix="/api")
 app.include_router(notifications_router, prefix="/api")
 app.include_router(learning_paths_router, prefix="/api")
 app.include_router(certificate_router, prefix="/api")
+from app.routers.builder import router as builder_router
+app.include_router(builder_router, prefix="/api")
 
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
